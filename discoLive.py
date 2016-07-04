@@ -156,14 +156,5 @@ if __name__ == "__main__":
 
     atlas_stream.timeout()
 
-    #while True:
-    #    data = getData()
-    #    print "number of disconnections: %s" % len(data)
-
-    #    bursts = kleinberg(data)
-    #    print bursts
-
-    #plotBursts(bursts)
-
     # Shut down everything
     atlas_stream.disconnect()
