@@ -19,11 +19,11 @@ def on_result_response(*args):
     if event["event"] == "disconnect":
         dataQueue.put(event["timestamp"])
 
-def getCleanVal(val,tsLocal):
+def getCleanVal(val,tsClean):
     newVal=val+1
-    if newval in tsClean:
-        newval=getCleanVal(newVal,tsLocal)
-    return newval
+    while newVal in tsClean:
+        newVal=val+1
+    return newVal
 
 def worker():
     while True:
@@ -39,8 +39,14 @@ def worker():
 
             dataQueue.task_done()
 
-                tsLocal.sort()
-            bursts = kleinberg(tsLocal)
+            #Manage duplicate values
+            for val in tsLocal:
+                if val in tsClean:
+                    newVal=getCleanVal(val,tsClean)
+                    tsClean.append(newVal)
+
+            tsClean.sort()
+            bursts = kleinberg(tsClean)
             print(bursts)
             plotBursts(bursts)
 
