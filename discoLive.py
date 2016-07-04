@@ -117,7 +117,6 @@ def plotBursts(bursts):
         if not q in b:
             b[q] = {"x":[], "y":[]}
 
-        # TODO remove /10 when "replace duplicate" is fixed
         b[q]["x"].append(dt.datetime.utcfromtimestamp(ts))
         b[q]["y"].append(0)
         b[q]["x"].append(dt.datetime.utcfromtimestamp(ts))
