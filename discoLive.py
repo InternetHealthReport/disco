@@ -31,7 +31,7 @@ def worker():
         eventLocal=[]
         eventClean=[]
         tsClean=[]
-        time.sleep(3*60)
+        time.sleep(10*60)
         #if dataQueue.qsize() > QUEUE_THRESHOLD:
             #while dataQueue.qsize() > QUEUE_THRESHOLD:
 
@@ -82,6 +82,7 @@ def worker():
                             print(' Probe ID: {0}'.format(evnt['id']))
                             print(' Prefix: {0}'.format(evnt['prefix']))
                             print(' Country: {0}'.format(evnt['country_code']))
+                            print(' ASN: {0}'.format(evnt['asn']))
                     burstRate=eventCounter/(timesDict['end']-timesDict['start'])
                     print('Average Burst Rate: {0}'.format(burstRate))
                     print('----------')
@@ -98,7 +99,7 @@ def kleinberg(data, verbose=5):
     ts = np.array(data)
 
     print('Performing Kleinberg burst detection..')
-    bursts =  pybursts.kleinberg(ts, s=2, gamma=0.3)
+    bursts =  pybursts.kleinberg(ts, s=2, gamma=1)
 
     # Give dates of prominent bursts
     if verbose is not None:
