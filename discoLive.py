@@ -1,6 +1,5 @@
 from __future__ import division
 import pybursts
-#import json
 import numpy as np
 import threading
 import time
@@ -94,31 +93,10 @@ def worker():
 
             dataQueue.task_done()
 
-'''
-def getData():
-    # load timestamps
-    ts = []
-    for line in open("./data/ke.dat"):
-        event = json.loads(line)
-        if event["event"] == "disconnect":
-            ts.append(event["timestamp"])
-
-    # sort timestamps
-    ts.sort()
-
-    return ts
-'''
-
 def kleinberg(data, verbose=5):
     # make timestamps relative to the first one
     ts = np.array(data)
 
-    #replace duplicate values
-    # TODO implement something nicer
-    #ts = ts*10
-    #for i in range(len(ts)-1):
-    #    if ts[i] == ts[i+1]:
-    #        ts[i+1] += 1
     print('Performing Kleinberg burst detection..')
     bursts =  pybursts.kleinberg(ts, s=2, gamma=0.3)
 
@@ -140,13 +118,13 @@ def plotBursts(bursts):
             b[q] = {"x":[], "y":[]}
 
         # TODO remove /10 when "replace duplicate" is fixed
-        b[q]["x"].append(dt.datetime.utcfromtimestamp(ts/10))
+        b[q]["x"].append(dt.datetime.utcfromtimestamp(ts))
         b[q]["y"].append(0)
-        b[q]["x"].append(dt.datetime.utcfromtimestamp(ts/10))
+        b[q]["x"].append(dt.datetime.utcfromtimestamp(ts))
         b[q]["y"].append(q)
-        b[q]["x"].append(dt.datetime.utcfromtimestamp(te/10))
+        b[q]["x"].append(dt.datetime.utcfromtimestamp(te))
         b[q]["y"].append(q)
-        b[q]["x"].append(dt.datetime.utcfromtimestamp(te/10))
+        b[q]["x"].append(dt.datetime.utcfromtimestamp(te))
         b[q]["y"].append(0)
 
     for q, val in b.iteritems():
