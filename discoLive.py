@@ -29,10 +29,12 @@ def worker():
     while True:
         tsLocal=[]
         tsClean=[]
-        time.sleep(20)
+        time.sleep(5*60)
         #if dataQueue.qsize() > QUEUE_THRESHOLD:
-        #    while dataQueue.qsize() > QUEUE_THRESHOLD:
+            #while dataQueue.qsize() > QUEUE_THRESHOLD:
+
         itemsToRead=dataQueue.qsize()
+        print('Items in queue: '+itemsToRead)
         while itemsToRead:
             tsLocal.append(dataQueue.get())
             itemsToRead-=1
@@ -41,9 +43,10 @@ def worker():
 
             #Manage duplicate values
             for val in tsLocal:
-                if val in tsClean:
+                newVal=val
+                if newVal in tsClean:
                     newVal=getCleanVal(val,tsClean)
-                    tsClean.append(newVal)
+                tsClean.append(newVal)
 
             tsClean.sort()
             bursts = kleinberg(tsClean)
