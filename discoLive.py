@@ -1,11 +1,13 @@
+from __future__ import division
 import pybursts
-import json
+#import json
 import numpy as np
 import threading
 import time
 from matplotlib import pylab as plt
 import datetime as dt
 import Queue
+import traceback
 from ripe.atlas.cousteau import AtlasStream
 
 def on_result_response(*args):
@@ -17,7 +19,7 @@ def on_result_response(*args):
     item=args[0]
     event = eval(str(item))
     if event["event"] == "disconnect":
-        dataQueue.put(event["timestamp"])
+        dataQueue.put(event)
 
 def getCleanVal(val,tsClean):
     newVal=val+1
@@ -27,32 +29,72 @@ def getCleanVal(val,tsClean):
 
 def worker():
     while True:
-        tsLocal=[]
+        eventLocal=[]
+        eventClean=[]
         tsClean=[]
-        time.sleep(5*60)
+        time.sleep(3*60)
         #if dataQueue.qsize() > QUEUE_THRESHOLD:
             #while dataQueue.qsize() > QUEUE_THRESHOLD:
 
         itemsToRead=dataQueue.qsize()
-        print('Items in queue: '+itemsToRead)
-        while itemsToRead:
-            tsLocal.append(dataQueue.get())
-            itemsToRead-=1
-
-            dataQueue.task_done()
+        print('Items in queue: {0}'.format(itemsToRead))
+        if itemsToRead>0:
+            while itemsToRead:
+                event=dataQueue.get()
+                #eventTimestamp=event['timestamp']
+                #eventProbeID=event['id']
+                eventLocal.append(event)
+                itemsToRead-=1
 
             #Manage duplicate values
-            for val in tsLocal:
-                newVal=val
+            for eventVal in eventLocal:
+                newVal=eventVal['timestamp']
                 if newVal in tsClean:
-                    newVal=getCleanVal(val,tsClean)
+                    newVal=getCleanVal(newVal,tsClean)
                 tsClean.append(newVal)
+                eventVal['timestamp']=newVal
+                eventClean.append(eventVal)
 
             tsClean.sort()
             bursts = kleinberg(tsClean)
-            print(bursts)
             plotBursts(bursts)
+            print('Bursts: {0}'.format(bursts))
+            burstsDict={}
+            for brt in bursts:
+                #print(brt)
+                q=brt[0]
+                qstart=brt[1]
+                qend=brt[2]
+                if q not in burstsDict.keys():
+                    burstsDict[q]={}
+                burstsDict[q]['start']=qstart
+                burstsDict[q]['end']=qend
+            for state,timesDict in burstsDict.items():
+                try:
+                    print('----------')
+                    print('State {0}:'.format(state))
+                    print('Start time: {0}'.format(timesDict['start']))
+                    print('End time: {0}'.format(timesDict['end']))
+                    print('Probes:')
+                    eventCounter=0
+                    for evnt in eventClean:
+                        if evnt['timestamp']>= timesDict['start'] and evnt['timestamp']<= timesDict['end']:
+                            eventCounter+=1
+                            print(' Probe ID: {0}'.format(evnt['id']))
+                            print(' Prefix: {0}'.format(evnt['prefix']))
+                            print(' Country: {0}'.format(evnt['country_code']))
+                    burstRate=eventCounter/(timesDict['end']-timesDict['start'])
+                    print('Average Burst Rate: {0}'.format(burstRate))
+                    print('----------')
+                except KeyError:
+                    pass
+                    #print(evnt)
+                except:
+                    traceback.print_exc()
 
+            dataQueue.task_done()
+
+'''
 def getData():
     # load timestamps
     ts = []
@@ -65,6 +107,7 @@ def getData():
     ts.sort()
 
     return ts
+'''
 
 def kleinberg(data, verbose=5):
     # make timestamps relative to the first one
@@ -72,11 +115,11 @@ def kleinberg(data, verbose=5):
 
     #replace duplicate values
     # TODO implement something nicer
-    ts = ts*10
-    for i in range(len(ts)-1):
-        if ts[i] == ts[i+1]:
-            ts[i+1] += 0.1
-
+    #ts = ts*10
+    #for i in range(len(ts)-1):
+    #    if ts[i] == ts[i+1]:
+    #        ts[i+1] += 1
+    print('Performing Kleinberg burst detection..')
     bursts =  pybursts.kleinberg(ts, s=2, gamma=0.3)
 
     # Give dates of prominent bursts
@@ -111,8 +154,8 @@ def plotBursts(bursts):
 
     plt.ylabel("Burst level")
     fig.autofmt_xdate()
-    plt.savefig("bursts.png")
-
+    outfile='bursts.png'
+    plt.savefig(outfile)
 
 if __name__ == "__main__":
     QUEUE_THRESHOLD=2
