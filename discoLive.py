@@ -7,7 +7,33 @@ from matplotlib import pylab as plt
 import datetime as dt
 import Queue
 import traceback
+from contextlib import closing
+import os.path
+import csv
 from ripe.atlas.cousteau import AtlasStream
+
+class outputWriter():
+
+    def __init__(self,resultfilename=None):
+        if not resultfilename:
+            print('Please give a result filename.')
+            exit(0)
+        self.lock = threading.RLock()
+        self.resultfilename = resultfilename
+        if os.path.exists(self.resultfilename):
+            os.remove(self.resultfilename)
+
+    def write(self,val,delimiter="|"):
+        self.lock.acquire()
+        try:
+            with closing(open(self.resultfilename, 'a+')) as csvfile:
+                writer = csv.writer(csvfile, delimiter=delimiter)
+                writer.writerow(val)
+        except:
+            traceback.print_exc()
+        finally:
+            self.lock.release()
+
 
 def on_result_response(*args):
     """
@@ -31,13 +57,17 @@ def worker():
         eventLocal=[]
         eventClean=[]
         tsClean=[]
-        time.sleep(10*60)
+        stateAvgBurstRateDict={}
+        waitTime=(30*60)/30
+        print('----------')
+        print('Thread waiting for {0} seconds...'.format(waitTime))
+        time.sleep(waitTime)
         #if dataQueue.qsize() > QUEUE_THRESHOLD:
             #while dataQueue.qsize() > QUEUE_THRESHOLD:
 
         itemsToRead=dataQueue.qsize()
-        print('Items in queue: {0}'.format(itemsToRead))
-        if itemsToRead>0:
+        if itemsToRead>1:
+            print('Items in queue: {0}'.format(itemsToRead))
             while itemsToRead:
                 event=dataQueue.get()
                 #eventTimestamp=event['timestamp']
@@ -70,7 +100,6 @@ def worker():
                 burstsDict[q]['end']=qend
             for state,timesDict in burstsDict.items():
                 try:
-                    print('----------')
                     print('State {0}:'.format(state))
                     print('Start time: {0}'.format(timesDict['start']))
                     print('End time: {0}'.format(timesDict['end']))
@@ -85,13 +114,15 @@ def worker():
                             print(' ASN: {0}'.format(evnt['asn']))
                     burstRate=eventCounter/(timesDict['end']-timesDict['start'])
                     print('Average Burst Rate: {0}'.format(burstRate))
-                    print('----------')
+                    stateAvgBurstRateDict[state]=burstRate
                 except KeyError:
                     pass
                     #print(evnt)
                 except:
                     traceback.print_exc()
-
+            maxState=max(stateAvgBurstRateDict.keys(), key=int)
+            output.write([maxState,stateAvgBurstRateDict[maxState]])
+            print('----------')
             dataQueue.task_done()
 
 def kleinberg(data, verbose=5):
@@ -99,7 +130,7 @@ def kleinberg(data, verbose=5):
     ts = np.array(data)
 
     print('Performing Kleinberg burst detection..')
-    bursts =  pybursts.kleinberg(ts, s=2, gamma=1)
+    bursts =  pybursts.kleinberg(ts, s=5, gamma=0.3)
 
     # Give dates of prominent bursts
     if verbose is not None:
@@ -139,6 +170,7 @@ if __name__ == "__main__":
     QUEUE_THRESHOLD=2
     ts = []
     dataQueue=Queue.Queue()
+    output=outputWriter(resultfilename='discoResults.csv')
     for i in range(0,1):
         t = threading.Thread(target=worker)
         t.daemon = True  # Thread dies when main thread (only non-daemon thread) exits.
@@ -151,10 +183,11 @@ if __name__ == "__main__":
     # Probe's connection status results
     channel = "probe"
     atlas_stream.bind_channel(channel, on_result_response)
-    stream_parameters = {"enrichProbes": True}
+    #1409137200
+    stream_parameters = {"enrichProbes": True,"startTime":1409132340,"endTime":1409132440,"speed":30}
     atlas_stream.start_stream(stream_type="probestatus", **stream_parameters)
 
     atlas_stream.timeout()
-
+    dataQueue.join()
     # Shut down everything
     atlas_stream.disconnect()
