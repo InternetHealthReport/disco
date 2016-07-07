@@ -29,7 +29,7 @@ def kleinberg(data, verbose=5):
         if ts[i] == ts[i+1]:
             ts[i+1] += 1
 
-    bursts =  pybursts.kleinberg(ts, s=2, gamma=0.3, g_hat=3600*10)
+    bursts =  pybursts.kleinberg(ts, s=2, gamma=1.5, g_hat=3600*10)
 
     # Give dates of prominent bursts
     if verbose is not None:
