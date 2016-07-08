@@ -43,7 +43,7 @@ def on_result_response(*args):
     #print args[0]
     item=args[0]
     event = eval(str(item))
-    print(event,flush=True)
+    print(event)
     if event["event"] == "disconnect":
         dataQueueDisconnect.put(event)
     elif event["event"] == "connect":
