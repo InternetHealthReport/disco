@@ -219,7 +219,7 @@ def kleinberg(data, verbose=5):
     ts = np.array(data)
 
     #print('Performing Kleinberg burst detection..')
-    bursts = pybursts.kleinberg(ts, s=3, gamma=2)
+    bursts = pybursts.kleinberg(ts, g_hat=300,s=2, gamma=2)
 
     '''
     # Give dates of prominent bursts
