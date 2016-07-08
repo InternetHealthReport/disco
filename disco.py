@@ -5,12 +5,15 @@ from matplotlib import pylab as plt
 import datetime as dt
 
 
-def getData():
+def getData(eventType):
+    asn = [ 7843, 10796, 11351, 11426, 11427, 12271, 20001]
     # load timestamps
+    data = json.load(open("./data/7000_20140827.json"))
     ts = []
-    for line in open("./data/ke.dat"):
-        event = json.loads(line)
-        if event["event"] == "disconnect":
+    # for line in open("./data/7000_20140827.json"):
+        # event = json.loads(line)
+    for event in data:
+        if event["event"] == eventType and event["asn"] in asn:
             ts.append(event["timestamp"])
 
     # sort timestamps
@@ -18,7 +21,7 @@ def getData():
 
     return ts
 
-def kleinberg(data, verbose=5):
+def kleinberg(data, verbose=10):
     # make timestamps relative to the first one
     ts = np.array(data)
 
@@ -27,9 +30,14 @@ def kleinberg(data, verbose=5):
     ts = ts*10
     for i in range(len(ts)-1):
         if ts[i] == ts[i+1]:
-            ts[i+1] += 1
+            j = 1
+            while ts[i+j]==ts[i]:
+                ts[i+j] += j
+                j+=1
 
-    bursts =  pybursts.kleinberg(ts, s=2, gamma=1.5, g_hat=3600*10)
+                assert j < 10
+
+    bursts =  pybursts.kleinberg(ts, s=2, gamma=.1) # g_hat=60*10)
 
     # Give dates of prominent bursts
     if verbose is not None:
@@ -40,7 +48,7 @@ def kleinberg(data, verbose=5):
 
     return bursts
 
-def plotBursts(bursts):
+def plotBursts(bursts,title):
     fig = plt.figure()
 
     b = {} 
@@ -62,15 +70,20 @@ def plotBursts(bursts):
         plt.plot(val["x"], val["y"], label=q)
 
     plt.ylabel("Burst level")
+    plt.title(title)
     fig.autofmt_xdate()
-    plt.savefig("bursts.eps")
+    plt.savefig("bursts_%s.eps" % title)
 
 
 if __name__ == "__main__":
-    data = getData()
-    print "number of disconnections: %s" % len(data)
+    data_con = getData("connect")
+    data_dis = getData("disconnect")
+    print "number of disconnections: %s" % len(data_dis)
+    bursts = kleinberg(data_dis)
+    plotBursts(bursts, "disconnect")
 
-    bursts = kleinberg(data)
-    print bursts
+    print "number of connections: %s" % len(data_con)
+    bursts = kleinberg(data_con)
+    plotBursts(bursts,"connect")
 
-    plotBursts(bursts)
+
