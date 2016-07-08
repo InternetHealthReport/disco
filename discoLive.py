@@ -61,7 +61,7 @@ def workerD():
         eventClean=[]
         tsClean=[]
         stateAvgBurstRateDict={}
-        waitTime=(5*60)
+        waitTime=(5*60)/5
         #print('----------')
         #print('Thread waiting for {0} seconds...'.format(waitTime))
         time.sleep(waitTime)
@@ -140,9 +140,7 @@ def workerC():
         eventClean=[]
         tsClean=[]
         stateAvgBurstRateDict={}
-        waitTime=(5*60)
-        #print('----------')
-        #print('Thread waiting for {0} seconds...'.format(waitTime))
+        waitTime=(5*60)/5
         time.sleep(waitTime)
         #if dataQueueConnect.qsize() > QUEUE_THRESHOLD:
             #while dataQueueConnect.qsize() > QUEUE_THRESHOLD:
@@ -185,18 +183,10 @@ def workerC():
                 burstsDict[q]['end']=qend
             for state,timesDict in burstsDict.items():
                 try:
-                    #print('State {0}:'.format(state))
-                    #print('Start time: {0}'.format(timesDict['start']))
-                    #print('End time: {0}'.format(timesDict['end']))
-                    #print('Probes:')
                     eventCounter=0
                     for evnt in eventClean:
                         if evnt['timestamp']>= timesDict['start'] and evnt['timestamp']<= timesDict['end']:
                             eventCounter+=1
-                            #print(' Probe ID: {0}'.format(evnt['id']))
-                            #print(' Prefix: {0}'.format(evnt['prefix']))
-                            #print(' Country: {0}'.format(evnt['country_code']))
-                            #print(' ASN: {0}'.format(evnt['asn']))
                     burstRate='-1'
                     if timesDict['end']!=timesDict['start']:
                         burstRate=eventCounter/(timesDict['end']-timesDict['start'])
