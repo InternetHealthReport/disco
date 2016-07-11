@@ -8,13 +8,13 @@ plt.plot([], 'g',label='Connections',lw=3)
 plt.legend()
 while True:
     abrListD=[]
-    with open('discoResults.csv', 'rb') as csvfile:
+    with open('discoResultsDisconnections.txt', 'rb') as csvfile:
         reader = csv.reader(csvfile, delimiter='|')
         for row in reader:
             abrListD.append(float(row[1]))
 
     abrListC=[]
-    with open('discoResults2.csv', 'rb') as csvfile:
+    with open('discoResultsConnections.txt', 'rb') as csvfile:
         reader = csv.reader(csvfile, delimiter='|')
         for row in reader:
             abrListC.append(float(row[1]))
