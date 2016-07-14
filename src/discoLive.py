@@ -1,20 +1,23 @@
-from __future__ import division
-import pybursts
-import numpy as np
+from __future__ import division, print_function
+
+import configparser
+import csv
+import json
+import logging
+import os.path
+import sys
 import threading
 import time
-from matplotlib import pylab as plt
-import datetime as dt
-import Queue
 import traceback
 from contextlib import closing
-import os.path
-import csv
-from pprint import PrettyPrinter
-import json
-import ast
-import sys
+import Queue
+import numpy as np
+import pybursts
 from ripe.atlas.cousteau import AtlasStream
+from choropleth import plotChoropleth
+from plotFunctions import plotter
+from probeEnrichInfo import probeEnrichInfo
+
 
 class outputWriter():
 
@@ -81,49 +84,44 @@ def groupByController(eventsList):
             controllerDict[controller]+=1
     return controllerDict
 
-def groupByASN(eventsList):
-    #Load probe info
-    asnToProbeIDDict={}
-    probeInfoFiles=['data/probeArchive-201600603.json','data/probeArchive-201600604.json','data/probeArchive-201600605.json','data/probeArchive-201600606.json','data/probeArchive-201600607.json']
-    for pFile in probeInfoFiles:
-        probesInfo=json.load(open(pFile))
-        for probe in probesInfo:
-            if probe['prefix_v4']!='null':
-                asn=probe['asn_v4']
-            elif probe['prefix_v6']!='null':
-                asn=probe['asn_v6']
-            else:
-                continue
-            if asn not in asnToProbeIDDict.keys():
-                asnToProbeIDDict[asn]=set()
-            asnToProbeIDDict[asn].add(probe['id'])
+def groupByProbeID(eventsList):
+    probeIDDict={}
+    for evt in eventsList:
+        prbID=evt['prb_id']
+        if prbID not in probeIDDict.keys():
+            probeIDDict[prbID]=1
+        else:
+            probeIDDict[prbID]+=1
+    return probeIDDict
 
+def groupByASN(eventsList):
     ASNDict={}
     for evt in eventsList:
-        asn=evt['asn']
-        if asn not in ASNDict.keys():
-            ASNDict[asn]=set()
-        ASNDict[asn].add(evt['prb_id'])
-
+        if evt['asn']:
+            asn=int(evt['asn'])
+            if asn not in ASNDict.keys():
+                ASNDict[asn]=set()
+            ASNDict[asn].add(evt['prb_id'])
 
     filteredASNDict={}
     impactVals=[]
     noInfoASNs=[]
     for k,v in ASNDict.items():
         try:
-            impactVals.append(float(len(v))/float(len(asnToProbeIDDict[k])))
+            impactVals.append(float(len(v))/float(len(probeInfo.asnToProbeIDDict[k])))
         except KeyError:
-            print('Key avg {0} not found'.format(k))
+            logging.warning('Key {0} not found'.format(k))
             noInfoASNs.append(k)
             continue
-    avgImapct=np.average(impactVals)/2
+    avgImapct=np.average(impactVals)/3
     #print(noInfoASNs)
-    print('Average Impact is {0}.'.format(avgImapct))
+    avgImapct=0
+    logging.info('Threshold Average Impact is {0}.'.format(avgImapct))
 
     for k,v in ASNDict.items():
         try:
             if k not in noInfoASNs:
-                numProbesASOwns=len(asnToProbeIDDict[k])
+                numProbesASOwns=len(probeInfo.asnToProbeIDDict[k])
                 if numProbesASOwns > 5:
                     numProbesInASDisconnected=len(v)
                     asnImpact=float(numProbesInASDisconnected)/float(numProbesASOwns)
@@ -134,55 +132,40 @@ def groupByASN(eventsList):
                     if asnImpact >= avgImapct:
                         filteredASNDict[k]=asnImpact
         except KeyError:
+            logging.error('Key {0} not found'.format(k))
             print('Key {0} not found'.format(k))
             exit(1)
     return filteredASNDict
 
 def groupByCountry(eventsList):
-    #Load probe info
-    probesInfo=json.load(open('data/probeArchive-201600607.json'))
-    probeIDToCountryDict={}
-    for probe in probesInfo:
-        probeIDToCountryDict[probe['id']]=probe['country_code']
+    probeIDToCountryDict=probeInfo.probeIDToCountryDict
 
     CountryDict={}
     for evt in eventsList:
         id=evt['prb_id']
         if id in probeIDToCountryDict.keys():
+            #print('GRP',evt['timestamp'],evt['controller'],probeIDToCountryDict[id])
             if probeIDToCountryDict[id] not in CountryDict.keys():
                 CountryDict[probeIDToCountryDict[id]]=1
             else:
                 CountryDict[probeIDToCountryDict[id]]+=1
         else:
-            x=1
-            #print('No mapping found for probe ID {0}'.format(id))
+            #x=1
+            #if evt['event']=='connect':
+            logging.warning('No mapping found for probe ID {0}'.format(id))
     return CountryDict
-
-def plotDict(d,outFileName,num):
-    try:
-        fig = plt.figure(num)
-        plt.tick_params(axis='both', which='major', labelsize=7)
-        X = np.arange(len(d))
-        plt.bar(X, d.values(), align='center')#, width=0.5)
-        plt.xticks(X, d.keys(), rotation='45')
-        ymax = max(d.values()) + 1
-        #plt.ylim(0, ymax)
-        #plt.yscale('log')
-        #plt.show()
-        plt.savefig(outFileName)
-    except:
-        traceback.print_exc()
 
 def workerD():
     global intDisControllerDict
     global intDisASNDict
     global intDisCountryDict
+    global intDisProbeIDDict
     while True:
         eventLocal=[]
         eventClean=[]
         tsClean=[]
         stateAvgBurstRateDict={}
-        time.sleep(waitTime)
+        time.sleep(WAIT_TIME)
 
         itemsToRead=dataQueueDisconnect.qsize()
         itr2=itemsToRead
@@ -206,9 +189,10 @@ def workerD():
                 eventClean.append(eventVal)
 
             tsClean.sort()
+            plotter.plotList(tsClean,'figures/rawDataDisconnections')
             #print(tsClean)
             bursts = kleinberg(tsClean)
-            plotBursts(bursts,'discon')
+            plotter.plotBursts(bursts,'figures/disconnectionBursts')
 
             burstsDict={}
             for brt in bursts:
@@ -222,22 +206,31 @@ def workerD():
 
             interestingEvents=getInterestingEvents(burstsDict,eventLocal)
             intDisControllerDict=groupByController(interestingEvents)
-            #print(intDisControllerDict)
+            intDisProbeIDDict=groupByProbeID(interestingEvents)
             intDisASNDict=groupByASN(interestingEvents)
-            #pprint.pprint(intDisASNDict)
             intDisCountryDict=groupByCountry(interestingEvents)
-            #print(intDisCountryDict)
+            with closing(open('data/ne/choroDisData.txt','w')) as fp:
+                print("CC,DISCON",file=fp)
+                for k,v in intDisCountryDict.items():
+                    normalizedVal=float(v)/len(probeInfo.countryToProbeIDDict[k])
+                    #print(v,normalizedVal)
+                    print("{0},{1}".format(k,normalizedVal),file=fp)
 
             for iter in range(0,itr2):
                 dataQueueDisconnect.task_done()
 
 def workerC():
+    global intConCountryDict
+    global intConControllerDict
+    global intConASNDict
+    global intConProbeIDDict
+
     while True:
         eventLocal=[]
         eventClean=[]
         tsClean=[]
         stateAvgBurstRateDict={}
-        time.sleep(waitTime)
+        time.sleep(WAIT_TIME)
 
         itemsToRead=dataQueueConnect.qsize()
         itr2=itemsToRead
@@ -259,8 +252,9 @@ def workerC():
                 eventClean.append(eventVal)
 
             tsClean.sort()
+            plotter.plotList(tsClean,'figures/rawDataConnections')
             bursts = kleinberg(tsClean)
-            plotBursts(bursts,'con')
+            plotter.plotBursts(bursts,'figures/connectionBursts')
 
             burstsDict={}
             for brt in bursts:
@@ -272,8 +266,20 @@ def workerC():
                 tmpDict={'start':qstart,'end':qend}
                 burstsDict[q].append(tmpDict)
 
+            interestingEvents=getInterestingEvents(burstsDict,eventLocal)
+            intConCountryDict=groupByCountry(interestingEvents)
+            intConControllerDict=groupByController(interestingEvents)
+            intConProbeIDDict=groupByProbeID(interestingEvents)
+            intConASNDict=groupByASN(interestingEvents)
+            with closing(open('data/ne/choroConData.txt','w')) as fp:
+                print("CC,DISCON",file=fp)
+                for k,v in intConCountryDict.items():
+                    normalizedVal=float(v)/len(probeInfo.countryToProbeIDDict[k])
+                    print("{0},{1}".format(k,normalizedVal),file=fp)
+
             for iter in range(0,itr2):
                 dataQueueConnect.task_done()
+
 
 
 
@@ -293,30 +299,6 @@ def kleinberg(data, verbose=5):
     '''
     return bursts
 
-def plotBursts(bursts,name):
-    fig = plt.figure(1)
-    #print(bursts)
-    b = {}
-    for q, ts, te in bursts:
-        if not q in b:
-            b[q] = {"x":[], "y":[]}
-
-        b[q]["x"].append(dt.datetime.utcfromtimestamp(ts/100))
-        b[q]["y"].append(0)
-        b[q]["x"].append(dt.datetime.utcfromtimestamp(ts/100))
-        b[q]["y"].append(q)
-        b[q]["x"].append(dt.datetime.utcfromtimestamp(te/100))
-        b[q]["y"].append(q)
-        b[q]["x"].append(dt.datetime.utcfromtimestamp(te/100))
-        b[q]["y"].append(0)
-
-    for q, val in b.iteritems():
-        plt.plot(val["x"], val["y"], label=q)
-
-    plt.ylabel("Burst level")
-    fig.autofmt_xdate()
-    outfile='figures/bursts_'+name+'.png'
-    plt.savefig(outfile)
 
 def getData(dataFile):
     '''
@@ -334,31 +316,66 @@ def getData(dataFile):
     try:
        data = json.load(open(dataFile))
        for event in data:
-            #print(event)
-            if event["event"] == "disconnect":
-                dataQueueDisconnect.put(event)
-            elif event["event"] == "connect":
-                dataQueueConnect.put(event)
+            try:
+                #if event["asn"]==7922 or True:
+                if event["event"] == "disconnect":
+                    dataQueueDisconnect.put(event)
+                elif event["event"] == "connect":
+                    dataQueueConnect.put(event)
+            except KeyError:
+                pass
     except:
         traceback.print_exc()
 
-
 if __name__ == "__main__":
-    READ_ONILNE=False
-    BURST_THRESHOLD=7
-    waitTime=1
+    logging.basicConfig(filename='logs/{0}.log'.format(os.path.basename(sys.argv[0]).split('.')[0]), level=logging.DEBUG,\
+                        format='[%(asctime)s] [%(levelname)s] %(message)s',datefmt='%m-%d-%Y %I:%M:%S')
+
+    logging.info('---Disco Live Initialized---')
+    configfile='conf/discoLive.conf'
+    logging.info('Using conf file {0}'.format(configfile))
+    config = configparser.ConfigParser()
     try:
-        dataFile=sys.argv[1]
+        config.sections()
+        config.read(configfile)
     except:
-        READ_ONILNE=True
-        waitTime=60
-        print('Reading Online with wait time 60 seconds..')
+        logging.error('Missing config: ' + configfile)
+        exit(1)
+
+    #For plots
+    plotter=plotter()
+
+    #Probe Enrichment Info
+    logging.info('Loading Probe Enrichment Info..')
+    probeInfo=probeEnrichInfo()
+    #probeInfo.loadInfoFromFiles()
+    probeInfo.loadAllInfo()
+
+    READ_ONILNE=eval(config['RUN_PARAMS']['readStream'])
+    BURST_THRESHOLD=int(config['RUN_PARAMS']['burstLevelThreshold'])
+    WAIT_TIME=int(config['RUN_PARAMS']['waitTime'])
+
+    if not READ_ONILNE:
+        try:
+            dataFile=sys.argv[1]
+            if '_' not in dataFile:
+                logging.error('Name of data file does not meet requirement. Should contain "_".')
+                exit(1)
+            plotter.setSuffix(os.path.basename(dataFile).split('_')[0])
+        except:
+            logging.warning('No input file given, switching back to reading online stream.')
+            plotter.setSuffix('live')
+            READ_ONILNE=True
+            #If given wait time is too small wait at least a minute
+            if WAIT_TIME < 60:
+                WAIT_TIME=60
 
     ts = []
     dataQueueDisconnect=Queue.Queue()
     dataQueueConnect=Queue.Queue()
-    outputDisc=outputWriter(resultfilename='data/discoResultsDisconnections.txt')
-    outputConn=outputWriter(resultfilename='data/discoResultsConnections.txt')
+
+    #outputDisc=outputWriter(resultfilename='data/discoResultsDisconnections.txt')
+    #outputConn=outputWriter(resultfilename='data/discoResultsConnections.txt')
 
     #Launch threads
     for i in range(0,1):
@@ -370,15 +387,20 @@ if __name__ == "__main__":
         t.daemon = True
         t.start()
 
-    pprint=PrettyPrinter()
-    #Interesting Events Data
+    #pprint=PrettyPrinter()
 
+    #Interesting Events Data
     intDisControllerDict={}
+    intConControllerDict={}
+    intDisProbeIDDict={}
+    intConProbeIDDict={}
     intDisASNDict={}
+    intConASNDict={}
     intDisCountryDict={}
+    intConCountryDict={}
 
     if READ_ONILNE:
-
+        logging.info('Reading Online with wait time {0} seconds.'.format(WAIT_TIME))
         try:
 
             #Read Stream
@@ -402,18 +424,32 @@ if __name__ == "__main__":
             atlas_stream.disconnect()
         except:
             print('Unexpected Event. Quiting.')
+            logging.error('Unexpected Event. Quiting.')
             atlas_stream.disconnect()
     else:
         try:
-            print('Processing {0}'.format(dataFile))
+            logging.info('Processing {0}'.format(dataFile))
             getData(dataFile)
+
             dataQueueDisconnect.join()
             dataQueueConnect.join()
 
-            #plotDict(intDisCountryDict,'figures/disconnectionsByCountry.png',2)
-            plotDict(intDisASNDict,'figures/disconnectionsByASN.png',3)
-            #plotDict(intDisControllerDict,'figures/disconnectionsByController.png',4)
+            plotter.plotDict(intDisCountryDict,'figures/disconnectionsByCountry')
+            plotter.plotDict(intConCountryDict,'figures/connectionsByCountry')
+            plotter.plotDict(intDisASNDict,'figures/disconnectionsByASN')
+            plotter.plotDict(intConASNDict,'figures/connectionsByASN')
+            plotter.plotDict(intDisControllerDict,'figures/disconnectionsByController')
+            plotter.plotDict(intConControllerDict,'figures/connectionsByController')
+            plotter.plotDict(intDisProbeIDDict,'figures/disconnectionsByProbeID')
+            plotter.plotDict(intConProbeIDDict,'figures/connectionsByProbeID')
 
+            if len(intDisCountryDict) > 1:
+                plotChoropleth('data/ne/choroDisData.txt','figures/choroDisPlot_'+plotter.suffix+'.png',plotter.getFigNum())
+            if len(intConCountryDict) > 1:
+                plotChoropleth('data/ne/choroConData.txt','figures/choroConPlot_'+plotter.suffix+'.png',plotter.getFigNum())
 
         except:
+            logging.error('Error in reading file.')
             raise Exception('Error in reading file.')
+
+    logging.info('---Disco Live Terminated---')
