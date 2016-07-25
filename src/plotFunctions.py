@@ -1,3 +1,4 @@
+from __future__ import division
 from matplotlib import pylab as plt
 import datetime as dt
 import numpy as np
@@ -14,6 +15,8 @@ class plotter():
         self.lock = threading.RLock()
 
     def plotDict(self,d,outFileName):
+        if len(d)==0:
+            return
         self.lock.acquire()
         try:
             num=self.getFigNum()
@@ -24,15 +27,19 @@ class plotter():
             X = np.arange(len(d))
             plt.bar(X, d.values(), align='center')#, width=0.5)
             plt.xticks(X, d.keys(), rotation='80')
-            #values=d.values()
+            values=d.values()
             #print(values)
-            #if len(values) == 1:
-            #    ymax = values[0] + 1
-            #else:
-            #    ymax = max(values) + 1
+            try:
+                if len(values) == 1:
+                    ymax = values[0] + 1
+                else:
+                    ymax = max(values) + 3
+            except:
+                pass
             #plt.ylim(0, ymax)
             #plt.yscale('log')
             #plt.show()
+            plt.autoscale()
             plt.savefig(outName)
             #try:
             #    command=('scp {0} chekov.netsec.colostate.edu:public_html/iij/{1}/'.format(outName,self.suffix))
@@ -44,12 +51,14 @@ class plotter():
         finally:
             self.lock.release()
 
-    def plotList(self,dataIn,outfileName):
+    def plotList(self,dataIn,outfileName,titleInfo=''):
+        if len(dataIn)==0:
+            return
         self.lock.acquire()
         try:
             #print(dataIn)
             outName=outfileName+'_'+self.suffix+'.'+self.outputFormat
-            data = [x / 100 for x in dataIn]
+            data = [x / 1 for x in dataIn]
             num=self.getFigNum()
             print('Plotting Figure {0}: {1}'.format(num,outName))
             fig = plt.figure(num,figsize=(10,8))
@@ -68,17 +77,33 @@ class plotter():
                     dict[dtList[val-1]]=1
                 else:
                     dict[dtList[val-1]]+=1
-            X=range(0,len(dict.keys()))
-            XTicks=range(0,len(X),len(X)/5)
-            dtListTicks=[]
-            for iters in range(0,len(XTicks)):
-                dtListTicks.append(dtList[iters])
+            #print(min(dict.keys()),max(dict.keys()))
+            X=range(0,len(dict.keys())+1)
+            X=sorted(dict.keys())
+
+            #Incase if data was not spread apart enough
+            #if len(X)==0:
+            #    return
+            #steps=int(len(X)/5)
+            #if steps<1:
+            #    steps=1
+
+            #XTicks=range(0,len(X),steps)
+            #dtListTicks=[]
+            #for iters in XTicks:
+                #print(dtList[iters])
+            #    dtListTicks.append(dtList[iters])
+                #print(iters,dtList[iters])
+
             Y=dict.values()
+
             plt.plot(X,Y)
+            plt.title(titleInfo)
             #print(dict)
             plt.ylim(0,max(Y)+5)
-            plt.xticks(XTicks,dtListTicks,rotation='80')
+            #plt.xticks(XTicks,dtListTicks,rotation='80')
             fig.autofmt_xdate()
+            plt.autoscale()
             plt.savefig(outName)
             #try:
             #    command=('scp {0} chekov.netsec.colostate.edu:public_html/iij/{1}/'.format(outName,self.suffix))
@@ -91,6 +116,9 @@ class plotter():
             self.lock.release()
 
     def plotBursts(self,bursts,name):
+        if len(bursts)==0:
+            print('No bursts!')
+            return
         self.lock.acquire()
         try:
             outName=name+'_'+self.suffix+'.'+self.outputFormat
@@ -103,20 +131,22 @@ class plotter():
                 if not q in b:
                     b[q] = {"x":[], "y":[]}
 
-                b[q]["x"].append(dt.datetime.utcfromtimestamp(ts/100))
+                b[q]["x"].append(dt.datetime.utcfromtimestamp(ts))
                 b[q]["y"].append(0)
-                b[q]["x"].append(dt.datetime.utcfromtimestamp(ts/100))
+                b[q]["x"].append(dt.datetime.utcfromtimestamp(ts))
                 b[q]["y"].append(q)
-                b[q]["x"].append(dt.datetime.utcfromtimestamp(te/100))
+                b[q]["x"].append(dt.datetime.utcfromtimestamp(te))
                 b[q]["y"].append(q)
-                b[q]["x"].append(dt.datetime.utcfromtimestamp(te/100))
+                b[q]["x"].append(dt.datetime.utcfromtimestamp(te))
                 b[q]["y"].append(0)
 
             for q, val in b.iteritems():
-                plt.plot(val["x"], val["y"], label=q)
+                plt.plot(val["x"], val["y"], label=q,color='c')
+                plt.fill_between(val["x"], val["y"],0,color='c')
 
             plt.ylabel("Burst level")
             fig.autofmt_xdate()
+            plt.autoscale()
             plt.savefig(outName)
             #try:
             #    command=('scp {0} chekov.netsec.colostate.edu:public_html/iij/{1}/'.format(outName,self.suffix))

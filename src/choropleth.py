@@ -12,7 +12,7 @@ from mpl_toolkits.basemap import Basemap
 def plotChoropleth(filename,imgfile,figNum):
     shapefile = 'data/ne/ne_10m_admin_0_countries'
     cols = ['CC', 'DISCON']
-    num_colors = 10
+    num_colors = 20
     gc = GeonamesCache()
     iso_codes = list(gc.get_dataset_by_key(gc.get_countries(), 'iso').keys())
     df = pd.read_csv(filename, skiprows=0, usecols=cols)
@@ -21,7 +21,8 @@ def plotChoropleth(filename,imgfile,figNum):
     values = df['DISCON']
     cm = plt.get_cmap('Reds')
     scheme = [cm(float(i) / num_colors) for i in range(num_colors)]
-    bins = np.linspace(values.min(), values.max(), num_colors)
+    #bins = np.linspace(values.min(), values.max(), num_colors)
+    bins = np.linspace(0, 1, num_colors)
     df['bin'] = np.digitize(values, bins) - 1
     df.sort_values('bin', ascending=False)#.head(10)
 
@@ -32,7 +33,7 @@ def plotChoropleth(filename,imgfile,figNum):
     fig = plt.figure(figNum,figsize=(22, 12))
 
     ax = fig.add_subplot(111, axisbg='w', frame_on=False)
-    plt.title('Disco Choropleth', fontsize=20)#, y=.95)
+    #plt.title('Disco Choropleth', fontsize=20)#, y=.95)
 
     m = Basemap(lon_0=0, projection='robin')
     m.drawmapboundary(color='w')
@@ -63,7 +64,7 @@ def plotChoropleth(filename,imgfile,figNum):
     ax_legend = fig.add_axes([0.35, 0.14, 0.3, 0.03], zorder=3)
     cmap = mpl.colors.ListedColormap(scheme)
     cb = mpl.colorbar.ColorbarBase(ax_legend, cmap=cmap, ticks=bins, boundaries=bins, orientation='horizontal')
-    cb.ax.set_xticklabels([str(round(i, 1)) for i in bins])
+    cb.ax.set_xticklabels([str(round(i, 2)) for i in bins],rotation='80')
 
     # Set the map footer.
     #plt.annotate(descripton, xy=(-.8, -3.2), size=14, xycoords='axes fraction')
