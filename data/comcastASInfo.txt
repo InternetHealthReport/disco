@@ -1,0 +1,59 @@
+3196	16509	AMAZON-02	 En 	Amazon.com, Inc.	 ↔ peer
+5678	22663	PROMINIC-N...	 Co 	Prominic.NET, Inc.	 ↔ peer
+6578	1668	AOL-ATDN	 Tr/Ac 	AOL Transit Data Network	 ↔ peer
+6643	33666	CMCS	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↔ peer (sibling)
+6862	15224	OMNITURE	 Co 	Adobe Systems Inc.	 ↔ peer
+6925	33654	CMCS	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↔ peer (sibling)
+7014	33665	CMCS	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↔ peer (sibling)
+7058	33655	CMCS	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↔ peer (sibling)
+7090	33656	CMCS	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↔ peer (sibling)
+7109	33653	CMCS	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↔ peer (sibling)
+7760	7224	AMAZON-AS	 Tr/Ac 	Amazon.com, Inc.	 ↔ peer
+101	11404	AS-VOBIZ	 Tr/Ac 	vanoppen.biz LLC	 ↓ customer
+122	7385	INTEGRATEL...	 Tr/Ac 	Integra Telecom, Inc.	 ↓ customer
+150	33491	COMCAST-33491	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+157	3223	VOXILITY	 Tr/Ac 	Voxility S.R.L.	 ↓ customer
+190	7015	COMCAST-7015	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+227	46786	IPTRANSIT	 Tr/Ac 	IP Transit Inc.	 ↓ customer
+229	13768	PEER1	 Tr/Ac 	Peer 1 Network (USA) Inc.	 ↓ customer
+253	33651	CMCS	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+309	33287	COMCAST-33287	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+316	33659	CMCS	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+340	33657	CMCS	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+352	7016	CCCH-3	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+358	33132	FPL-FIBERNET	 Tr/Ac 	FPL FiberNet, LLC	 ↓ customer
+366	33668	CMCS	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+401	12129	123NET	 Tr/Ac 	123.Net, Inc.	 ↓ customer
+427	33660	CMCS	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+560	33490	COMCAST-33490	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+570	4258	WOLFENET	 Tr/Ac 	Wolfenet	 ↓ customer
+572	33650	COMCAST-33650	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+607	7725	COMCAST-7725	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+613	33662	CMCS	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+627	33652	CMCS	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+649	62	CYRS	 Tr/Ac 	CyrusOne LLC	 ↓ customer
+695	13367	COMCAST-13367	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+746	40676	AS40676	 Co 	Psychz Networks	 ↓ customer
+759	15305	SYRINGANET...	 Tr/Ac 	Syringa Networks, LLC	 ↓ customer
+932	21508	COMCAST-21508	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+960	22909	COMCAST-22909	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+962	33667	CMCS	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+986	30036	MEDIACOM-E...	 Tr/Ac 	Mediacom Communications Corp	 ↓ customer
+1033	14244	NSIHOSTING...	 En 	NSI Hosting	 ↓ customer
+1049	36351	SOFTLAYER	 Co 	SoftLayer Technologies Inc.	 ↓ customer
+1238	29863	LATISYS-DE...	 Tr/Ac 	Latisys-Denver, LLC	 ↓ customer
+1276	20214	COMCAST-20214	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+1303	8047	GCI	 Tr/Ac 	GENERAL COMMUNICATION, INC.	 ↓ customer
+1398	17604	KIISS-AS-KR	 Tr/Ac 	NCA	 ↓ customer
+1675	29944	LATISYS-AS...	 Tr/Ac 	Latisys-Ashburn, LLC	 ↓ customer
+1714	33489	COMCAST-33489	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
+1840	33748	DSCI	 Tr/Ac 	DSCI Corporation	 ↓ customer
+1857	29802	HVC-AS	 Co 	HIVELOCITY VENTURES CORP	 ↓ customer
+1912	17223	LATISYS-CH...	 Tr/Ac 	Latisys-Chicago, LLC	 ↓ customer
+2086	6653	FORETHOUGH...	 Tr/Ac 	privateI, LLC	 ↓ customer
+2309	13385	COMCAST-TE...	 Tr/Ac 	Comcast Telecommunications, Inc.	 ↓ customer
+2314	22299	GCRONLINE	 Tr/Ac 	GCR Company/GCR Online	 ↓ customer
+2437	20940	AKAMAI-ASN1	 Co 	Akamai International B.V.	 ↓ customer
+2445	40824	WZCOM	 Co 	WZ Communications Inc.	 ↓ customer
+2767	46844	ST-BGP	 Co 	Sharktech	 ↓ customer
+2787	33661	CMCS	 Tr/Ac 	Comcast Cable Communications, Inc.	 ↓ customer (sibling)
