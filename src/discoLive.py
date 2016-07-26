@@ -18,6 +18,8 @@ from ripe.atlas.cousteau import AtlasStream
 from choropleth import plotChoropleth
 from plotFunctions import plotter
 from probeEnrichInfo import probeEnrichInfo
+from pprint import PrettyPrinter
+
 
 
 class outputWriter():
@@ -52,6 +54,7 @@ def on_result_response(*args):
     item=args[0]
     event = eval(str(item))
     #print(event)
+    dataList.append(event)
     if DETECT_DISCO_BURST:
         if event["event"] == "disconnect":
             dataQueueDisconnect.put(event)
@@ -106,8 +109,21 @@ def applyBurstThreshold(burstsDict,eventsList):
                         insertFlag=True
         if insertFlag:
             thresholdedEvents.append(event)
-
+    countEventsInState(burstsDict,eventsList)
     return thresholdedEvents
+
+def countEventsInState(burstsDict,eventsList):
+    dataDict={}
+    for state,timeDictList in burstsDict.items():
+        numEventsInState=0
+        for event in eventsList:
+            for timeDict in timeDictList:
+                if float(event['timestamp'])>=timeDict['start'] and float(event['timestamp'])<=timeDict['end']:
+                    insertFlag=True
+                    numEventsInState+=1
+        #print(state,numEventsInState)
+        dataDict[state]=numEventsInState
+    plotter.plotDict(dataDict,'figures/numEventsInStates')
 
 def getFilteredEvents(eventLocal):
     interestingEvents=[]
@@ -246,7 +262,7 @@ def getData(dataFile):
        data = json.load(open(dataFile))
        for event in data:
             try:
-                #if event["asn"]==7922 or True:
+                dataList.append(event)
                 if DETECT_DISCO_BURST:
                     if event["event"] == "disconnect":
                         dataQueueDisconnect.put(event)
@@ -266,6 +282,97 @@ def copyToServerFunc(typeFile):
             os.system(command)
         except:
             traceback.print_exc()
+
+
+def getBurstEventIDDict(burstDict):
+    burstEventDict={}
+    burstEventID=1
+    for state,timeDictList in burstDict.items():
+        if state == BURST_THRESHOLD:
+            for timeDict in timeDictList:
+                burstEventDict[burstEventID]={'start':timeDict['start'],'end':timeDict['end']}
+                burstEventID+=1
+    return burstEventDict
+
+def getEventID(burstEventDict,event):
+    eventID=None
+    for eID,times in burstEventDict.items():
+        if float(event['timestamp'])>=times['start'] and float(event['timestamp'])<=times['end']:
+            eventID=eID
+            break
+    return eventID
+
+def getTimeStampsForBurstyProbes(burstyProbes,burstDict,burstEventDict):
+    burstyProbeInfoDict={}
+    for event in dataList:
+        if event["event"] == "disconnect":
+            eventTime=float(event['timestamp'])
+            pid=event["prb_id"]
+            if pid in burstyProbes:
+                for state,timeDictList in burstDict.items():
+                    if state >= BURST_THRESHOLD:
+                        eventID=getEventID(burstEventDict,event)
+                        for timeDict in timeDictList:
+                            if eventID and eventTime>=timeDict['start'] and eventTime<=timeDict['end']:
+                                if pid not in burstyProbeInfoDict.keys():
+                                    burstyProbeInfoDict[pid]={}
+                                if state not in burstyProbeInfoDict[pid].keys():
+                                    burstyProbeInfoDict[pid][state]={}
+                                if eventID not in burstyProbeInfoDict[pid][state].keys():
+                                    burstyProbeInfoDict[pid][state][eventID]=[]
+                                burstyProbeInfoDict[pid][state][eventID].append(event["timestamp"])
+
+    #pp.pprint(burstyProbeInfoDict)
+    return burstyProbeInfoDict
+
+def correlateWithConnectionEvents(burstyProbeInfoDictIn):
+    #pp.pprint(burstyProbeInfoDict)
+    burstyProbeInfoDict=burstyProbeInfoDictIn
+    burstyProbeDurations={}
+    for event in dataList:
+        if event["event"] == "connect":
+            pid=event["prb_id"]
+            if pid in burstyProbeInfoDict.keys():
+                for state in burstyProbeInfoDict[pid].keys():
+                    for burstID,tmpSList in burstyProbeInfoDict[pid][state].items():
+                        for tmpS in tmpSList:
+                            eventTS=float(event["timestamp"])
+                            if eventTS >tmpS:
+                                burstyProbeInfoDict[pid][state][burstID].remove(tmpS)
+                                duration=eventTS-tmpS
+                                if burstID not in burstyProbeDurations.keys():
+                                    burstyProbeDurations[burstID]={}
+                                if pid not in burstyProbeDurations[burstID].keys():
+                                    burstyProbeDurations[burstID][pid]={}
+                                if state not in burstyProbeDurations[burstID][pid].keys():
+                                    burstyProbeDurations[burstID][pid][state]=[]
+                                burstyProbeDurations[burstID][pid][state].append({"disconnect":tmpS,"connect":eventTS,"duration":duration})
+
+    #burstyProbeDurationsFiltered={}
+    #for id,probeEventsList in burstyProbeDurations.items():
+    #    statesAchieved=[]
+    #    for vals in probeEventsList:
+    #        thisMaxState
+
+    return burstyProbeDurations
+
+def getPerEventStats(burstyProbeDurations):
+    for id,inDict in burstyProbeDurations.items():
+        startTimes=[]
+        endTimes=[]
+        durations=[]
+        probeIds=[]
+        for pid,inDict2 in inDict.items():
+            maxState=max(inDict2.keys())
+            for infoDict in inDict2[maxState]:
+                startTimes.append(infoDict["disconnect"])
+                endTimes.append(infoDict["connect"])
+                durations.append(infoDict["duration"])
+                probeIds.append({'probeID':pid,'state':maxState})
+        startMedian=np.median(np.array(startTimes))
+        endMedian=np.median(np.array(endTimes))
+        durationMedian=np.median(np.array(durations))
+        output.write([id,startMedian,endMedian,durationMedian,probeIds])
 
 def workerThread(threadType):
     intConCountryDict={}
@@ -386,6 +493,15 @@ def workerThread(threadType):
                         intConControllerDict=groupByController(thresholdedEvents)
                     if groupByProbeIDPlot:
                         intConProbeIDDict=groupByProbeID(thresholdedEvents)
+                        if threadType=='dis':
+                            burstyProbeIDs=intConProbeIDDict.keys()
+                            burstEventDict=getBurstEventIDDict(burstsDict)
+                            burstyProbeInfoDict=getTimeStampsForBurstyProbes(burstyProbeIDs,burstsDict,burstEventDict)
+                            burstyProbeDurations=correlateWithConnectionEvents(burstyProbeInfoDict)
+                            #pp.pprint(burstyProbeInfoDict)
+                            #pp.pprint(burstyProbeDurations)
+                            #pp.pprint(burstEventDict)
+                            getPerEventStats(burstyProbeDurations)
                     if groupByASNPlot:
                         intConASNDict=groupByASN(thresholdedEvents)
                     if choroplethPlot:
@@ -438,6 +554,32 @@ def workerThread(threadType):
                     dataQueueConnect.task_done()
                 else:
                     dataQueueDisconnect.task_done()
+
+def pullTraceroutes():
+    try:
+
+        #Read Stream
+        atlas_stream = AtlasStream()
+        atlas_stream.connect()
+
+        # Probe's connection status results
+        channel = "probe"
+
+        atlas_stream.bind_channel(channel, onTracerouteResponse)
+        #1409132340
+        #1409137200
+        #stream_parameters = {"startTime":1409132240,"endTime":1409137200,"speed":5}
+        stream_parameters = {"enrichProbes": True}
+        atlas_stream.start_stream(stream_type="probestatus", **stream_parameters)
+
+        atlas_stream.timeout()
+
+        # Shut down everything
+        atlas_stream.disconnect()
+    except:
+        print('Unexpected Event. Quiting.')
+        logging.error('Unexpected Event. Quiting.')
+        atlas_stream.disconnect()
 
 if __name__ == "__main__":
     logging.basicConfig(filename='logs/{0}.log'.format(os.path.basename(sys.argv[0]).split('.')[0]), level=logging.DEBUG,\
@@ -557,9 +699,12 @@ if __name__ == "__main__":
     ts = []
     dataQueueDisconnect=Queue.Queue()
     dataQueueConnect=Queue.Queue()
+    dataList=[]
 
+    pp=PrettyPrinter()
     #outputDisc=outputWriter(resultfilename='data/discoResultsDisconnections.txt')
     #outputConn=outputWriter(resultfilename='data/discoResultsConnections.txt')
+    output=outputWriter(resultfilename='data/discoEventMedians.txt')
 
     #Launch threads
     if DETECT_DISCO_BURST:
