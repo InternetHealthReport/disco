@@ -2,10 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b44adc08-c0d1-4577-abea-0b408e0e8ab6" name="Default" comment="">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/data/discoEventMedians.txt" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pybursts" afterPath="$PROJECT_DIR$/pybursts" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/conf/discoLive.conf" afterPath="$PROJECT_DIR$/conf/discoLive.conf" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/data/discoEventMedians.txt" afterPath="$PROJECT_DIR$/data/discoEventMedians.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/data/ne/choroDisData.txt" afterPath="$PROJECT_DIR$/data/ne/choroDisData.txt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/discoLive.py" afterPath="$PROJECT_DIR$/src/discoLive.py" />
     </list>
     <ignored path="disco.iws" />
@@ -30,8 +30,8 @@
       <file leaf-file-name="discoLive.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/discoLive.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.4697624">
-              <caret line="116" column="5" selection-start-line="116" selection-start-column="5" selection-end-line="116" selection-end-column="5" />
+            <state vertical-scroll-proportion="1.0971922">
+              <caret line="238" column="5" selection-start-line="238" selection-start-column="5" selection-end-line="238" selection-end-column="5" />
               <folding>
                 <element signature="e#0#47#0" expanded="true" />
               </folding>
@@ -43,7 +43,7 @@
         <entry file="file://$PROJECT_DIR$/conf/discoLive.conf">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="24" column="24" selection-start-line="24" selection-start-column="24" selection-end-line="24" selection-end-column="24" />
+              <caret line="42" column="24" selection-start-line="42" selection-start-column="24" selection-end-line="42" selection-end-column="24" />
               <folding />
             </state>
           </provider>
@@ -892,15 +892,15 @@
     <entry file="file://$PROJECT_DIR$/conf/discoLive.conf">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="24" column="24" selection-start-line="24" selection-start-column="24" selection-end-line="24" selection-end-column="24" />
+          <caret line="42" column="24" selection-start-line="42" selection-start-column="24" selection-end-line="42" selection-end-column="24" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/discoLive.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.4697624">
-          <caret line="116" column="5" selection-start-line="116" selection-start-column="5" selection-end-line="116" selection-end-column="5" />
+        <state vertical-scroll-proportion="1.0971922">
+          <caret line="238" column="5" selection-start-line="238" selection-start-column="5" selection-end-line="238" selection-end-column="5" />
           <folding>
             <element signature="e#0#47#0" expanded="true" />
           </folding>

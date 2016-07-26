@@ -236,7 +236,7 @@ def kleinberg(data,probesInUnit=1,timeRange=8640000,verbose=5):
     ts = np.array(data)
     #print(numEvents)
 
-    logging.info('Performing Kleinberg burst detection..')
+    #logging.info('Performing Kleinberg burst detection..')
     #bursts = pybursts.kleinberg(ts,s=2, gamma=0.3)
     bursts = pybursts.kleinberg(ts,s=s, T=timeRange,n=probesInUnit*nScalar,gamma=gamma)
     '''
@@ -361,7 +361,7 @@ def correlateWithConnectionEvents(burstyProbeInfoDictIn):
 
     return burstyProbeDurations
 
-def getPerEventStats(burstyProbeDurations):
+def getPerEventStats(burstyProbeDurations,output):
     for id,inDict in burstyProbeDurations.items():
         startTimes=[]
         endTimes=[]
@@ -496,19 +496,20 @@ def workerThread(threadType):
                         intConCountryDict=groupByCountry(thresholdedEvents)
                     if groupByControllerPlot:
                         intConControllerDict=groupByController(thresholdedEvents)
-                    if groupByProbeIDPlot:
-                        intConProbeIDDict=groupByProbeID(thresholdedEvents)
-                        if threadType=='dis':
-                            burstyProbeIDs=intConProbeIDDict.keys()
-                            burstEventDict=getBurstEventIDDict(burstsDict)
-                            burstyProbeInfoDict=getTimeStampsForBurstyProbes(burstyProbeIDs,burstsDict,burstEventDict)
-                            burstyProbeDurations=correlateWithConnectionEvents(burstyProbeInfoDict)
-                            getPerEventStats(burstyProbeDurations)
-                            if processTraceroute:
-                                pullTraceroutes()
+                    #if groupByProbeIDPlot:
+                    intConProbeIDDict=groupByProbeID(thresholdedEvents)
+                    if threadType=='dis':
+                        burstyProbeIDs=intConProbeIDDict.keys()
+                        burstEventDict=getBurstEventIDDict(burstsDict)
+                        burstyProbeInfoDict=getTimeStampsForBurstyProbes(burstyProbeIDs,burstsDict,burstEventDict)
+                        burstyProbeDurations=correlateWithConnectionEvents(burstyProbeInfoDict)
+                        output=outputWriter(resultfilename='results/discoEventMedians_'+str(key)+'.txt')
+                        getPerEventStats(burstyProbeDurations,output)
+                        if processTraceroute:
+                            pullTraceroutes()
                     if groupByASNPlot:
                         intConASNDict=groupByASN(thresholdedEvents)
-                    if choroplethPlot:
+                    if groupByCountryPlot and choroplethPlot and not countryKey:
                         with closing(open('data/ne/choro'+threadType+'Data.txt','w')) as fp:
                             print("CC,DISCON",file=fp)
                             for k,v in intConCountryDict.items():
@@ -541,7 +542,7 @@ def workerThread(threadType):
                             plotter.plotDict(intConControllerDict,'figures/'+threadType+'ByController_'+str(key))
                         if groupByProbeIDPlot:
                             plotter.plotDict(intConProbeIDDict,'figures/'+threadType+'ByProbeID_'+str(key))
-                        if choroplethPlot:
+                        if groupByCountryPlot and choroplethPlot and not countryKey:
                             #if len(intConCountryDict) > 1:
                             plotChoropleth('data/ne/choro'+threadType+'Data.txt','figures/'+threadType+'ChoroPlot_'+str(key)+'_'+plotter.suffix+'.png',plotter.getFigNum())
                         copyToServerFunc(threadType)
@@ -682,27 +683,32 @@ if __name__ == "__main__":
     logging.info('Number of probes selected: {0}'.format(numSelectedProbesInUnit))
     #print('Number of probes selected: {0}'.format(numProbesInUnit))
 
-    READ_ONILNE=eval(config['RUN_PARAMS']['readStream'])
-    BURST_THRESHOLD=int(config['RUN_PARAMS']['burstLevelThreshold'])
-    SIGNAL_LENGTH=int(config['RUN_PARAMS']['minimumSignalLength'])
-    MIN_PROBES=int(config['RUN_PARAMS']['minimumProbesInUnit'])
-    WAIT_TIME=int(config['RUN_PARAMS']['waitTime'])
-    DETECT_DISCO_BURST=eval(config['RUN_PARAMS']['detectDisconnectBurst'])
-    DETECT_CON_BURST=eval(config['RUN_PARAMS']['detectConnectBurst'])
-    processTraceroute=eval(config['RUN_PARAMS']['processTraceroutes'])
-    SPLIT_SIGNAL=eval(config['FILTERS']['splitSignal'])
-    gamma=float(config['KLIENBERG']['gamma'])
-    s=float(config['KLIENBERG']['s'])
-    nScalar=float(config['KLIENBERG']['nScalar'])
+    try:
+        READ_ONILNE=eval(config['RUN_PARAMS']['readStream'])
+        BURST_THRESHOLD=int(config['RUN_PARAMS']['burstLevelThreshold'])
+        SIGNAL_LENGTH=int(config['RUN_PARAMS']['minimumSignalLength'])
+        MIN_PROBES=int(config['RUN_PARAMS']['minimumProbesInUnit'])
+        WAIT_TIME=int(config['RUN_PARAMS']['waitTime'])
+        DETECT_DISCO_BURST=eval(config['RUN_PARAMS']['detectDisconnectBurst'])
+        DETECT_CON_BURST=eval(config['RUN_PARAMS']['detectConnectBurst'])
+        processTraceroute=eval(config['RUN_PARAMS']['processTraceroutes'])
+        SPLIT_SIGNAL=eval(config['FILTERS']['splitSignal'])
+        gamma=float(config['KLIENBERG']['gamma'])
+        s=float(config['KLIENBERG']['s'])
+        nScalar=float(config['KLIENBERG']['nScalar'])
 
-    rawDataPlot=eval(config['PLOT_FILTERS']['rawDataPlot'])
-    burstDetectionPlot=eval(config['PLOT_FILTERS']['burstDetectionPlot'])
-    groupByCountryPlot=eval(config['PLOT_FILTERS']['groupByCountryPlot'])
-    groupByASNPlot=eval(config['PLOT_FILTERS']['groupByASNPlot'])
-    groupByControllerPlot=eval(config['PLOT_FILTERS']['groupByControllerPlot'])
-    groupByProbeIDPlot=eval(config['PLOT_FILTERS']['groupByProbeIDPlot'])
-    choroplethPlot=eval(config['PLOT_FILTERS']['choroplethPlot'])
-    copyToServer=eval(config['PLOT_FILTERS']['copyToServer'])
+        rawDataPlot=eval(config['PLOT_FILTERS']['rawDataPlot'])
+        burstDetectionPlot=eval(config['PLOT_FILTERS']['burstDetectionPlot'])
+        groupByCountryPlot=eval(config['PLOT_FILTERS']['groupByCountryPlot'])
+        groupByASNPlot=eval(config['PLOT_FILTERS']['groupByASNPlot'])
+        groupByControllerPlot=eval(config['PLOT_FILTERS']['groupByControllerPlot'])
+        groupByProbeIDPlot=eval(config['PLOT_FILTERS']['groupByProbeIDPlot'])
+        choroplethPlot=eval(config['PLOT_FILTERS']['choroplethPlot'])
+        copyToServer=eval(config['PLOT_FILTERS']['copyToServer'])
+    except:
+        logging.error('Incorrect or missing parameter(s) in config file!')
+        print('Incorrect or missing parameter(s) in config file!')
+        exit(1)
 
     dataFile=None
     dataTimeRangeInSeconds=None
@@ -715,6 +721,8 @@ if __name__ == "__main__":
                 exit(1)
             plotter.setSuffix(os.path.basename(dataFile).split('_')[0])
             try:
+                WAIT_TIME=1
+                logging.info('Reading offline with wait time {0} seconds.'.format(WAIT_TIME))
                 dataTimeRangeInSeconds=int(eval(sys.argv[2]))*100
             except:
                 #If time range is not given assume a day
@@ -724,10 +732,6 @@ if __name__ == "__main__":
             logging.warning('Input parameter error, switching back to reading online stream.')
             plotter.setSuffix('live')
             READ_ONILNE=True
-            #If given wait time is too small wait at least a minute
-            if WAIT_TIME < 60:
-                WAIT_TIME=60
-            dataTimeRangeInSeconds=int(WAIT_TIME)
 
     ts = []
     dataQueueDisconnect=Queue.Queue()
@@ -737,7 +741,7 @@ if __name__ == "__main__":
     pp=PrettyPrinter()
     #outputDisc=outputWriter(resultfilename='data/discoResultsDisconnections.txt')
     #outputConn=outputWriter(resultfilename='data/discoResultsConnections.txt')
-    output=outputWriter(resultfilename='data/discoEventMedians.txt')
+
 
     #Launch threads
     if DETECT_DISCO_BURST:
@@ -752,6 +756,9 @@ if __name__ == "__main__":
             t.start()
 
     if READ_ONILNE:
+        if WAIT_TIME < 60:
+            WAIT_TIME=60
+        dataTimeRangeInSeconds=int(WAIT_TIME)
         logging.info('Reading Online with wait time {0} seconds.'.format(WAIT_TIME))
         try:
 
