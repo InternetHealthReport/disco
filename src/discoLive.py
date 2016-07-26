@@ -14,11 +14,12 @@ from contextlib import closing
 import Queue
 import numpy as np
 import pybursts
-from ripe.atlas.cousteau import AtlasStream
+from ripe.atlas.cousteau import AtlasStream,AtlasResultsRequest
 from choropleth import plotChoropleth
 from plotFunctions import plotter
 from probeEnrichInfo import probeEnrichInfo
 from pprint import PrettyPrinter
+from datetime import datetime
 
 
 
@@ -61,6 +62,10 @@ def on_result_response(*args):
     if DETECT_CON_BURST:
         if event["event"] == "connect":
             dataQueueConnect.put(event)
+
+def onTracerouteResponse(*args):
+    item=args[0]
+    print(item)
 
 def getCleanVal(val,tsClean):
     newVal=val+1
@@ -109,7 +114,7 @@ def applyBurstThreshold(burstsDict,eventsList):
                         insertFlag=True
         if insertFlag:
             thresholdedEvents.append(event)
-    countEventsInState(burstsDict,eventsList)
+    #countEventsInState(burstsDict,eventsList)
     return thresholdedEvents
 
 def countEventsInState(burstsDict,eventsList):
@@ -368,7 +373,7 @@ def getPerEventStats(burstyProbeDurations):
                 startTimes.append(infoDict["disconnect"])
                 endTimes.append(infoDict["connect"])
                 durations.append(infoDict["duration"])
-                probeIds.append({'probeID':pid,'state':maxState})
+                probeIds.append({'probeID':pid,'state':maxState,"start":infoDict["disconnect"],"end":infoDict["connect"]})
         startMedian=np.median(np.array(startTimes))
         endMedian=np.median(np.array(endTimes))
         durationMedian=np.median(np.array(durations))
@@ -498,10 +503,9 @@ def workerThread(threadType):
                             burstEventDict=getBurstEventIDDict(burstsDict)
                             burstyProbeInfoDict=getTimeStampsForBurstyProbes(burstyProbeIDs,burstsDict,burstEventDict)
                             burstyProbeDurations=correlateWithConnectionEvents(burstyProbeInfoDict)
-                            #pp.pprint(burstyProbeInfoDict)
-                            #pp.pprint(burstyProbeDurations)
-                            #pp.pprint(burstEventDict)
                             getPerEventStats(burstyProbeDurations)
+                            if processTraceroute:
+                                pullTraceroutes()
                     if groupByASNPlot:
                         intConASNDict=groupByASN(thresholdedEvents)
                     if choroplethPlot:
@@ -556,31 +560,59 @@ def workerThread(threadType):
                     dataQueueDisconnect.task_done()
 
 def pullTraceroutes():
-    try:
+    USE_STREAM=True
+    msmIDs=[]
+    #files=['data/anchorMsmIdsv4.txt','data/builtinMsmIdsv4.txt']
+    files=['data/builtinMsmIdsv4.txt']
+    for file in files:
+        with open(file,'r') as fp:
+            for line in fp:
+                l=int(line.rstrip('\n').split(':')[1])
+                msmIDs.append(l)
+    if USE_STREAM:
+        try:
 
-        #Read Stream
-        atlas_stream = AtlasStream()
-        atlas_stream.connect()
+            #Read Stream
+            atlas_stream = AtlasStream()
+            atlas_stream.connect()
 
-        # Probe's connection status results
-        channel = "probe"
+            # Probe's connection status results
+            channel = "result"
 
-        atlas_stream.bind_channel(channel, onTracerouteResponse)
-        #1409132340
-        #1409137200
-        #stream_parameters = {"startTime":1409132240,"endTime":1409137200,"speed":5}
-        stream_parameters = {"enrichProbes": True}
-        atlas_stream.start_stream(stream_type="probestatus", **stream_parameters)
+            atlas_stream.bind_channel(channel, onTracerouteResponse)
+            startTime=1461911417.0
+            endTime=1461969358.5
 
-        atlas_stream.timeout()
+            for msm in msmIDs:
+                #print(msm)
+                stream_parameters = {"msm": msm,"startTime":startTime,"endTime":endTime}
+                atlas_stream.start_stream(stream_type="result", **stream_parameters)
 
-        # Shut down everything
-        atlas_stream.disconnect()
-    except:
-        print('Unexpected Event. Quiting.')
-        logging.error('Unexpected Event. Quiting.')
-        atlas_stream.disconnect()
+            atlas_stream.timeout()
 
+            # Shut down everything
+            atlas_stream.disconnect()
+        except:
+            print('Unexpected Event. Quiting.')
+            logging.error('Unexpected Event. Quiting.')
+            atlas_stream.disconnect()
+    else:
+        startTime=datetime.fromtimestamp(1461911417.0)
+        endTime=datetime.fromtimestamp(1461969358.5)
+        for msm in msmIDs:
+            kwargs = {
+                "msm_id": msm,
+                #"start": datetime(2016, 04, 01),
+                #"stop": datetime(2016, 04, 30),
+                "start":startTime,
+                "endTime":endTime,
+                #"probe_ids": [1,2,3,4]
+            }
+
+            is_success, results = AtlasResultsRequest(**kwargs).create()
+
+            if is_success:
+                print(results)
 if __name__ == "__main__":
     logging.basicConfig(filename='logs/{0}.log'.format(os.path.basename(sys.argv[0]).split('.')[0]), level=logging.DEBUG,\
                         format='[%(asctime)s] [%(levelname)s] %(message)s',datefmt='%m-%d-%Y %I:%M:%S')
@@ -657,6 +689,7 @@ if __name__ == "__main__":
     WAIT_TIME=int(config['RUN_PARAMS']['waitTime'])
     DETECT_DISCO_BURST=eval(config['RUN_PARAMS']['detectDisconnectBurst'])
     DETECT_CON_BURST=eval(config['RUN_PARAMS']['detectConnectBurst'])
+    processTraceroute=eval(config['RUN_PARAMS']['processTraceroutes'])
     SPLIT_SIGNAL=eval(config['FILTERS']['splitSignal'])
     gamma=float(config['KLIENBERG']['gamma'])
     s=float(config['KLIENBERG']['s'])
