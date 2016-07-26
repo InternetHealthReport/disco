@@ -37,7 +37,7 @@ def kleinberg(data, verbose=10):
 
                 assert j < 10
 
-    bursts =  pybursts.kleinberg(ts, s=2, gamma=.1) # g_hat=60*10)
+    bursts =  pybursts.kleinberg(ts, s=2, gamma=.1, n=1300, T=86400*10)
 
     # Give dates of prominent bursts
     if verbose is not None:
