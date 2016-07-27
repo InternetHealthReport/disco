@@ -20,6 +20,10 @@ from plotFunctions import plotter
 from probeEnrichInfo import probeEnrichInfo
 from pprint import PrettyPrinter
 from datetime import datetime
+import gzip
+from os import listdir
+from os.path import isfile, join
+
 
 
 
@@ -264,7 +268,7 @@ def getData(dataFile):
         traceback.print_exc()
     '''
     try:
-       data = json.load(open(dataFile))
+       data = json.load(gzip.open(dataFile))
        for event in data:
             try:
                 dataList.append(event)
@@ -353,12 +357,6 @@ def correlateWithConnectionEvents(burstyProbeInfoDictIn):
                                     burstyProbeDurations[burstID][pid][state]=[]
                                 burstyProbeDurations[burstID][pid][state].append({"disconnect":tmpS,"connect":eventTS,"duration":duration})
 
-    #burstyProbeDurationsFiltered={}
-    #for id,probeEventsList in burstyProbeDurations.items():
-    #    statesAchieved=[]
-    #    for vals in probeEventsList:
-    #        thisMaxState
-
     return burstyProbeDurations
 
 def getPerEventStats(burstyProbeDurations,output):
@@ -411,6 +409,7 @@ def workerThread(threadType):
                 #dataQueueConnect.task_done()
 
             interestingEvents=getFilteredEvents(eventLocal)
+            dataDate=datetime.fromtimestamp(interestingEvents[0]["timestamp"]).strftime('%Y%m%d')
             signalMapCountries=getUniqueSignalInEvents(interestingEvents)
 
             #Manage duplicate values
@@ -473,10 +472,10 @@ def workerThread(threadType):
                 #print(tsClean)
                 if rawDataPlot:
                     titleInfoText='Total probes matching filter: {0}\nNumber of probes seen in connection events: {1}'.format(numProbesInUnit,len(probesInFilteredData))
-                    plotter.plotList(tsClean,'figures/'+threadType+'RawData_'+str(key),titleInfo=titleInfoText)
+                    plotter.plotList(tsClean,'figures/'+threadType+'RawData_'+dataDate+'_'+str(key),titleInfo=titleInfoText)
                 bursts = kleinberg(tsClean,timeRange=dataTimeRangeInSeconds,probesInUnit=numProbesInUnit)
                 if burstDetectionPlot:
-                    plotter.plotBursts(bursts,'figures/'+threadType+'Bursts_'+str(key))
+                    plotter.plotBursts(bursts,'figures/'+threadType+'Bursts_'+dataDate+'_'+str(key))
 
                 burstsDict={}
                 for brt in bursts:
@@ -503,7 +502,7 @@ def workerThread(threadType):
                         burstEventDict=getBurstEventIDDict(burstsDict)
                         burstyProbeInfoDict=getTimeStampsForBurstyProbes(burstyProbeIDs,burstsDict,burstEventDict)
                         burstyProbeDurations=correlateWithConnectionEvents(burstyProbeInfoDict)
-                        output=outputWriter(resultfilename='results/discoEventMedians_'+str(key)+'.txt')
+                        output=outputWriter(resultfilename='results/discoEventMedians_'+dataDate+'_'+str(key)+'.txt')
                         getPerEventStats(burstyProbeDurations,output)
                         if processTraceroute:
                             pullTraceroutes()
@@ -535,16 +534,16 @@ def workerThread(threadType):
                     plotter.lock.acquire()
                     try:
                         if groupByCountryPlot and not countryKey:
-                            plotter.plotDict(intConCountryDict,'figures/'+threadType+'ByCountry_'+str(key))
+                            plotter.plotDict(intConCountryDict,'figures/'+threadType+'ByCountry_'+dataDate+'_'+str(key))
                         if groupByASNPlot and not asnKey:
-                            plotter.plotDict(intConASNDict,'figures/'+threadType+'ByASN_'+str(key))
+                            plotter.plotDict(intConASNDict,'figures/'+threadType+'ByASN_'+dataDate+'_'+str(key))
                         if groupByControllerPlot:
-                            plotter.plotDict(intConControllerDict,'figures/'+threadType+'ByController_'+str(key))
+                            plotter.plotDict(intConControllerDict,'figures/'+threadType+'ByController_'+dataDate+'_'+str(key))
                         if groupByProbeIDPlot:
-                            plotter.plotDict(intConProbeIDDict,'figures/'+threadType+'ByProbeID_'+str(key))
+                            plotter.plotDict(intConProbeIDDict,'figures/'+threadType+'ByProbeID_'+dataDate+'_'+str(key))
                         if groupByCountryPlot and choroplethPlot and not countryKey:
                             #if len(intConCountryDict) > 1:
-                            plotChoropleth('data/ne/choro'+threadType+'Data.txt','figures/'+threadType+'ChoroPlot_'+str(key)+'_'+plotter.suffix+'.png',plotter.getFigNum())
+                            plotChoropleth('data/ne/choro'+threadType+'Data.txt','figures/'+threadType+'ChoroPlot_'+dataDate+'_'+str(key)+'_'+plotter.suffix+'.png',plotter.getFigNum())
                         copyToServerFunc(threadType)
                         intConControllerDict.clear()
                         intConProbeIDDict.clear()
@@ -693,9 +692,9 @@ if __name__ == "__main__":
         DETECT_CON_BURST=eval(config['RUN_PARAMS']['detectConnectBurst'])
         processTraceroute=eval(config['RUN_PARAMS']['processTraceroutes'])
         SPLIT_SIGNAL=eval(config['FILTERS']['splitSignal'])
-        gamma=float(config['KLIENBERG']['gamma'])
-        s=float(config['KLIENBERG']['s'])
-        nScalar=float(config['KLIENBERG']['nScalar'])
+        gamma=float(config['KLEINBERG']['gamma'])
+        s=float(config['KLEINBERG']['s'])
+        nScalar=float(config['KLEINBERG']['nScalar'])
 
         rawDataPlot=eval(config['PLOT_FILTERS']['rawDataPlot'])
         burstDetectionPlot=eval(config['PLOT_FILTERS']['burstDetectionPlot'])
@@ -714,24 +713,25 @@ if __name__ == "__main__":
     dataTimeRangeInSeconds=None
 
     if not READ_ONILNE:
-        try:
-            dataFile=sys.argv[1]
-            if '_' not in dataFile:
-                logging.error('Name of data file does not meet requirement. Should contain "_".')
-                exit(1)
-            plotter.setSuffix(os.path.basename(dataFile).split('_')[0])
             try:
-                WAIT_TIME=1
-                logging.info('Reading offline with wait time {0} seconds.'.format(WAIT_TIME))
-                dataTimeRangeInSeconds=int(eval(sys.argv[2]))*100
+                dataFile=sys.argv[1]
+                if os.path.isfile(dataFile) or dataFile is None:
+                    if '_' not in dataFile:
+                        logging.error('Name of data file does not meet requirement. Should contain "_".')
+                        exit(1)
+                    plotter.setSuffix(os.path.basename(dataFile).split('_')[0])
+                    try:
+                        WAIT_TIME=1
+                        logging.info('Reading offline with wait time {0} seconds.'.format(WAIT_TIME))
+                        dataTimeRangeInSeconds=int(eval(sys.argv[2]))*100
+                    except:
+                        #If time range is not given assume a day
+                        dataTimeRangeInSeconds=8640000
+                    #print(dataTimeRangeInSeconds)
             except:
-                #If time range is not given assume a day
-                dataTimeRangeInSeconds=8640000
-            #print(dataTimeRangeInSeconds)
-        except:
-            logging.warning('Input parameter error, switching back to reading online stream.')
-            plotter.setSuffix('live')
-            READ_ONILNE=True
+                logging.warning('Input parameter error, switching back to reading online stream.')
+                plotter.setSuffix('live')
+                READ_ONILNE=True
 
     ts = []
     dataQueueDisconnect=Queue.Queue()
@@ -788,11 +788,22 @@ if __name__ == "__main__":
             atlas_stream.disconnect()
     else:
         try:
-            logging.info('Processing {0}'.format(dataFile))
-            getData(dataFile)
+            eventFiles=[]
+            if os.path.isdir(dataFile):
+                eventFiles = [join(dataFile, f) for f in listdir(dataFile) if isfile(join(dataFile, f))]
+            else:
+                eventFiles.append(dataFile)
 
-            dataQueueDisconnect.join()
-            dataQueueConnect.join()
+            for file in eventFiles:
+                if file.endswith('.gz'):
+                    logging.info('Processing {0}'.format(file))
+                    plotter.setSuffix(os.path.basename(file).split('_')[0])
+                    getData(file)
+
+                    dataQueueDisconnect.join()
+                    dataQueueConnect.join()
+                else:
+                    logging.info('Ignoring file {0}, its not of correct format.'.format(file))
 
         except:
             logging.error('Error in reading file.')
