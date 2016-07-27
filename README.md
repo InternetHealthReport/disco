@@ -4,8 +4,8 @@ Analysis of probe disconnections
 ## Requirements
 - numpy
 - matplotlib
-- pybursts (https://pypi.python.org/pypi/pybursts/)
+- pybursts (modified version)
+- configparser
+- geonamescache
+- basemap (http://matplotlib.org/basemap/)
 
-## TODO
-- plug with RIPE stream API
-- better handling of events with same timestamp
