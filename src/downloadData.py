@@ -14,7 +14,7 @@ def downloadData(start, end, msmId=7000, timeWindow = timedelta(minutes=24*60) )
     # Get measurments results
     currDate = start
     while currDate+timeWindow<end:
-        path = "/data/%s/%s" % (currDate.year, currDate.month)
+        path = "data/%s/%s" % (currDate.year, currDate.month)
         try:
             print("%s:  measurement id %s" % (currDate, msmId) )
             if not os.path.exists(path):
@@ -62,4 +62,4 @@ if __name__ == "__main__":
     start = datetime(int(sys.argv[1]), int(sys.argv[2]), 1)
     end= start + relativedelta.relativedelta(months=1)
 
-    downloadData(start, end, [sys.argv[3]], [int(sys.argv[4])] )
+    downloadData(start, end) 
