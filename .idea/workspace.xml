@@ -2,10 +2,31 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b44adc08-c0d1-4577-abea-0b408e0e8ab6" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/data/discoEventMedians.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/data/generalApril29_7000_20160429.json" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/data/generalJune16_7000_20160616.json" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_15502.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_35612.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_38229.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_43754.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_6057.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_680.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_6830.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_9829.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_AL.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_AR.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_All.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_BR.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_CG.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_CM.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_EE.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_IN.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_IR.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_LK.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_LV.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_UY.txt" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pybursts" afterPath="$PROJECT_DIR$/pybursts" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/conf/discoLive.conf" afterPath="$PROJECT_DIR$/conf/discoLive.conf" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/data/ne/choroDisData.txt" afterPath="$PROJECT_DIR$/data/ne/choroDisData.txt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/discoLive.py" afterPath="$PROJECT_DIR$/src/discoLive.py" />
     </list>
     <ignored path="disco.iws" />
@@ -27,11 +48,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="discoLive.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="discoLive.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/discoLive.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="1.0971922">
-              <caret line="238" column="5" selection-start-line="238" selection-start-column="5" selection-end-line="238" selection-end-column="5" />
+            <state vertical-scroll-proportion="-25.518518">
+              <caret line="803" column="43" selection-start-line="803" selection-start-column="43" selection-end-line="803" selection-end-column="43" />
               <folding>
                 <element signature="e#0#47#0" expanded="true" />
               </folding>
@@ -39,11 +60,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="discoLive.conf" pinned="false" current-in-tab="false">
+      <file leaf-file-name="discoLive.conf" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/conf/discoLive.conf">
           <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.65982723">
+              <caret line="41" column="24" selection-start-line="41" selection-start-column="24" selection-end-line="41" selection-end-column="24" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="scpResultsFile.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/scpResultsFile.sh">
+          <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="42" column="24" selection-start-line="42" selection-start-column="24" selection-end-line="42" selection-end-column="24" />
+              <caret line="0" column="3" selection-start-line="0" selection-start-column="3" selection-end-line="0" selection-end-column="3" />
               <folding />
             </state>
           </provider>
@@ -81,8 +112,8 @@
         <option value="$PROJECT_DIR$/src/readProbeEnrichInfo.py" />
         <option value="$PROJECT_DIR$/src/discoWorkerThread.py" />
         <option value="$PROJECT_DIR$/src/probeEnrichInfo.py" />
-        <option value="$PROJECT_DIR$/conf/discoLive.conf" />
         <option value="$PROJECT_DIR$/src/discoLive.py" />
+        <option value="$PROJECT_DIR$/conf/discoLive.conf" />
       </list>
     </option>
   </component>
@@ -164,8 +195,8 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
       <pane id="Scratches" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="RecentsManager">
@@ -496,7 +527,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="44" column="79" selection-start-line="44" selection-start-column="79" selection-end-line="44" selection-end-column="79" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -512,7 +542,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="25" column="50" selection-start-line="25" selection-start-column="8" selection-end-line="25" selection-end-column="50" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -520,7 +549,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="27" column="63" selection-start-line="27" selection-start-column="63" selection-end-line="27" selection-end-column="63" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -538,7 +566,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="44" column="79" selection-start-line="44" selection-start-column="79" selection-end-line="44" selection-end-column="79" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -554,7 +581,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="25" column="50" selection-start-line="25" selection-start-column="8" selection-end-line="25" selection-end-column="50" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -562,7 +588,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="27" column="63" selection-start-line="27" selection-start-column="63" selection-end-line="27" selection-end-column="63" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -580,7 +605,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="44" column="79" selection-start-line="44" selection-start-column="79" selection-end-line="44" selection-end-column="79" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -596,7 +620,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="25" column="50" selection-start-line="25" selection-start-column="8" selection-end-line="25" selection-end-column="50" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -604,7 +627,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="27" column="63" selection-start-line="27" selection-start-column="63" selection-end-line="27" selection-end-column="63" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -622,7 +644,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="44" column="79" selection-start-line="44" selection-start-column="79" selection-end-line="44" selection-end-column="79" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -638,7 +659,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="25" column="50" selection-start-line="25" selection-start-column="8" selection-end-line="25" selection-end-column="50" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -646,7 +666,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="27" column="63" selection-start-line="27" selection-start-column="63" selection-end-line="27" selection-end-column="63" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -664,7 +683,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="44" column="79" selection-start-line="44" selection-start-column="79" selection-end-line="44" selection-end-column="79" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -680,7 +698,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="25" column="50" selection-start-line="25" selection-start-column="8" selection-end-line="25" selection-end-column="50" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -688,7 +705,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="27" column="63" selection-start-line="27" selection-start-column="63" selection-end-line="27" selection-end-column="63" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -706,7 +722,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="44" column="79" selection-start-line="44" selection-start-column="79" selection-end-line="44" selection-end-column="79" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -722,7 +737,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="25" column="50" selection-start-line="25" selection-start-column="8" selection-end-line="25" selection-end-column="50" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -740,7 +754,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="33" column="36" selection-start-line="33" selection-start-column="36" selection-end-line="33" selection-end-column="36" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -756,7 +769,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -774,7 +786,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="23" column="47" selection-start-line="23" selection-start-column="47" selection-end-line="23" selection-end-column="47" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -834,13 +845,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/scpResultsFile.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="3" selection-start-line="0" selection-start-column="3" selection-end-line="0" selection-end-column="3" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/choropleth.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -869,7 +873,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="25" column="50" selection-start-line="25" selection-start-column="8" selection-end-line="25" selection-end-column="50" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -877,7 +880,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="27" column="63" selection-start-line="27" selection-start-column="63" selection-end-line="27" selection-end-column="63" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -885,25 +887,32 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.53023756">
           <caret line="44" column="79" selection-start-line="44" selection-start-column="79" selection-end-line="44" selection-end-column="79" />
-          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/conf/discoLive.conf">
+    <entry file="file://$PROJECT_DIR$/scpResultsFile.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="42" column="24" selection-start-line="42" selection-start-column="24" selection-end-line="42" selection-end-column="24" />
+        <state vertical-scroll-proportion="-0.0">
+          <caret line="0" column="3" selection-start-line="0" selection-start-column="3" selection-end-line="0" selection-end-column="3" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/discoLive.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.0971922">
-          <caret line="238" column="5" selection-start-line="238" selection-start-column="5" selection-end-line="238" selection-end-column="5" />
+        <state vertical-scroll-proportion="-25.518518">
+          <caret line="803" column="43" selection-start-line="803" selection-start-column="43" selection-end-line="803" selection-end-column="43" />
           <folding>
             <element signature="e#0#47#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/conf/discoLive.conf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.65982723">
+          <caret line="41" column="24" selection-start-line="41" selection-start-column="24" selection-end-line="41" selection-end-column="24" />
+          <folding />
         </state>
       </provider>
     </entry>
