@@ -267,9 +267,10 @@ def getData(dataFile):
     except:
         traceback.print_exc()
     '''
+    del dataList[:]
     try:
-       data = json.load(gzip.open(dataFile))
-       for event in data:
+        data = json.load(gzip.open(dataFile))
+        for event in data:
             try:
                 dataList.append(event)
                 if DETECT_DISCO_BURST:
@@ -383,21 +384,25 @@ def workerThread(threadType):
     intConASNDict={}
     intConProbeIDDict={}
     global numSelectedProbesInUnit #Probes after user filter
+    global READ_OK
     numProbesInUnit=0
 
     while True:
         eventLocal=[]
-        time.sleep(WAIT_TIME)
+        if not READ_OK:
+            while not READ_OK:
+                time.sleep(WAIT_TIME)
+        else:
+            time.sleep(WAIT_TIME)
         if threadType=='con':
             itemsToRead=dataQueueConnect.qsize()
         elif threadType=='dis':
             itemsToRead=dataQueueDisconnect.qsize()
         else:
-            raise 'Unknown thread type!'
+            print('Unknown thread type!')
             exit(1)
         #print('I am {0}'.format(threadType))
         itr2=itemsToRead
-        #print('Con '+str(itemsToRead))
         if itemsToRead>1:
             while itemsToRead:
                 if threadType=='con':
@@ -711,6 +716,8 @@ if __name__ == "__main__":
 
     dataFile=None
     dataTimeRangeInSeconds=None
+    #Variable to control when thread starts reading the data queue
+    READ_OK=True
 
     if not READ_ONILNE:
             try:
@@ -719,14 +726,6 @@ if __name__ == "__main__":
                     if '_' not in dataFile:
                         logging.error('Name of data file does not meet requirement. Should contain "_".')
                         exit(1)
-                    plotter.setSuffix(os.path.basename(dataFile).split('_')[0])
-                    try:
-                        WAIT_TIME=1
-                        logging.info('Reading offline with wait time {0} seconds.'.format(WAIT_TIME))
-                        dataTimeRangeInSeconds=int(eval(sys.argv[2]))*100
-                    except:
-                        #If time range is not given assume a day
-                        dataTimeRangeInSeconds=8640000
                     #print(dataTimeRangeInSeconds)
             except:
                 logging.warning('Input parameter error, switching back to reading online stream.')
@@ -757,6 +756,7 @@ if __name__ == "__main__":
 
     if READ_ONILNE:
         if WAIT_TIME < 60:
+            logging.info('Thread wait time was too low, updated to 60 seconds.')
             WAIT_TIME=60
         dataTimeRangeInSeconds=int(WAIT_TIME)
         logging.info('Reading Online with wait time {0} seconds.'.format(WAIT_TIME))
@@ -797,11 +797,23 @@ if __name__ == "__main__":
             for file in eventFiles:
                 if file.endswith('.gz'):
                     logging.info('Processing {0}'.format(file))
+                    global dataQueueDisconnect
+                    global dataQueueConnect
+                    dataQueueDisconnect=Queue.Queue()
+                    dataQueueConnect=Queue.Queue()
                     plotter.setSuffix(os.path.basename(file).split('_')[0])
+                    WAIT_TIME=1
+                    try:
+                        dataTimeRangeInSeconds=int(eval(sys.argv[2]))*100
+                    except:
+                        dataTimeRangeInSeconds=8640000
+                    #Make sure threads wait till the entire file is read
+                    READ_OK=False
                     getData(file)
-
+                    READ_OK=True
                     dataQueueDisconnect.join()
                     dataQueueConnect.join()
+
                 else:
                     logging.info('Ignoring file {0}, its not of correct format.'.format(file))
 

@@ -2,31 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b44adc08-c0d1-4577-abea-0b408e0e8ab6" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/data/generalApril29_7000_20160429.json" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/data/generalJune16_7000_20160616.json" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_15502.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_35612.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_38229.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_43754.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_6057.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_680.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_6830.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_9829.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_AL.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_AR.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_All.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_BR.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_CG.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_CM.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_EE.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_IN.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_IR.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_LK.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_LV.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_UY.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_20160616_All.txt" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pybursts" afterPath="$PROJECT_DIR$/pybursts" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/conf/discoLive.conf" afterPath="$PROJECT_DIR$/conf/discoLive.conf" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/data/ne/choroDisData.txt" afterPath="$PROJECT_DIR$/data/ne/choroDisData.txt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/discoLive.py" afterPath="$PROJECT_DIR$/src/discoLive.py" />
     </list>
     <ignored path="disco.iws" />
@@ -48,11 +28,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="discoLive.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="discoLive.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/discoLive.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-25.518518">
-              <caret line="803" column="43" selection-start-line="803" selection-start-column="43" selection-end-line="803" selection-end-column="43" />
+            <state vertical-scroll-proportion="0.26585093">
+              <caret line="403" column="40" selection-start-line="403" selection-start-column="40" selection-end-line="403" selection-end-column="40" />
               <folding>
                 <element signature="e#0#47#0" expanded="true" />
               </folding>
@@ -60,11 +40,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="discoLive.conf" pinned="false" current-in-tab="true">
+      <file leaf-file-name="discoLive.conf" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/conf/discoLive.conf">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.65982723">
-              <caret line="41" column="24" selection-start-line="41" selection-start-column="24" selection-end-line="41" selection-end-column="24" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="47" column="20" selection-start-line="47" selection-start-column="20" selection-end-line="47" selection-end-column="20" />
               <folding />
             </state>
           </provider>
@@ -112,8 +92,8 @@
         <option value="$PROJECT_DIR$/src/readProbeEnrichInfo.py" />
         <option value="$PROJECT_DIR$/src/discoWorkerThread.py" />
         <option value="$PROJECT_DIR$/src/probeEnrichInfo.py" />
-        <option value="$PROJECT_DIR$/src/discoLive.py" />
         <option value="$PROJECT_DIR$/conf/discoLive.conf" />
+        <option value="$PROJECT_DIR$/src/discoLive.py" />
       </list>
     </option>
   </component>
@@ -898,21 +878,21 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/discoLive.py">
+    <entry file="file://$PROJECT_DIR$/conf/discoLive.conf">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-25.518518">
-          <caret line="803" column="43" selection-start-line="803" selection-start-column="43" selection-end-line="803" selection-end-column="43" />
-          <folding>
-            <element signature="e#0#47#0" expanded="true" />
-          </folding>
+        <state vertical-scroll-proportion="0.0">
+          <caret line="47" column="20" selection-start-line="47" selection-start-column="20" selection-end-line="47" selection-end-column="20" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/conf/discoLive.conf">
+    <entry file="file://$PROJECT_DIR$/src/discoLive.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.65982723">
-          <caret line="41" column="24" selection-start-line="41" selection-start-column="24" selection-end-line="41" selection-end-column="24" />
-          <folding />
+        <state vertical-scroll-proportion="0.26585093">
+          <caret line="403" column="40" selection-start-line="403" selection-start-column="40" selection-end-line="403" selection-end-column="40" />
+          <folding>
+            <element signature="e#0#47#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
