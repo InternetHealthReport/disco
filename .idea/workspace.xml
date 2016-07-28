@@ -2,16 +2,18 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b44adc08-c0d1-4577-abea-0b408e0e8ab6" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_35612.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_43754.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_6830.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_AL.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_All.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/results/discoEventMedians_IR.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/data/probeArchiveData/probeArchive-20160601.json" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/data/probeArchiveData/probeArchive-20160602.json" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/data/probeArchiveData/probeArchive-20160603.json" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/data/probeArchiveData/probeArchive-20160604.json" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/data/probeArchiveData/probeArchive-20160605.json" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/data/probeArchiveData/probeArchive-20160606.json" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/data/probeArchiveData/probeArchive-20160607.json" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pybursts" afterPath="$PROJECT_DIR$/pybursts" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/conf/discoLive.conf" afterPath="$PROJECT_DIR$/conf/discoLive.conf" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/data/quickReadModuleData/asnToProbeIDDict.pickle" afterPath="$PROJECT_DIR$/data/quickReadModuleData/asnToProbeIDDict.pickle" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/data/quickReadModuleData/countryToProbeIDDict.pickle" afterPath="$PROJECT_DIR$/data/quickReadModuleData/countryToProbeIDDict.pickle" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/data/quickReadModuleData/probeIDToASNDict.pickle" afterPath="$PROJECT_DIR$/data/quickReadModuleData/probeIDToASNDict.pickle" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/data/quickReadModuleData/probeIDToCountryDict.pickle" afterPath="$PROJECT_DIR$/data/quickReadModuleData/probeIDToCountryDict.pickle" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/discoLive.py" afterPath="$PROJECT_DIR$/src/discoLive.py" />
@@ -36,11 +38,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="discoLive.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="discoLive.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/discoLive.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.6965443">
-              <caret line="95" column="46" selection-start-line="95" selection-start-column="46" selection-end-line="95" selection-end-column="46" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="380" column="29" selection-start-line="380" selection-start-column="29" selection-end-line="380" selection-end-column="29" />
               <folding>
                 <element signature="e#0#47#0" expanded="true" />
               </folding>
@@ -52,17 +54,29 @@
         <entry file="file://$PROJECT_DIR$/src/probeEnrichInfo.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="35" column="75" selection-start-line="35" selection-start-column="75" selection-end-line="35" selection-end-column="75" />
+              <caret line="48" column="32" selection-start-line="48" selection-start-column="32" selection-end-line="48" selection-end-column="32" />
+              <folding>
+                <element signature="e#0#16#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="discoLive.conf" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/conf/discoLive.conf">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.50215983">
+              <caret line="31" column="16" selection-start-line="31" selection-start-column="16" selection-end-line="31" selection-end-column="16" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="discoLive.conf" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/conf/discoLive.conf">
+      <file leaf-file-name="probeArchiveDownloader.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/probeArchiveDownloader.sh">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="40" column="16" selection-start-line="40" selection-start-column="16" selection-end-line="40" selection-end-column="16" />
+              <caret line="7" column="14" selection-start-line="7" selection-start-column="14" selection-end-line="7" selection-end-column="14" />
               <folding />
             </state>
           </provider>
@@ -109,8 +123,9 @@
         <option value="$PROJECT_DIR$/src/plotGT.py" />
         <option value="$PROJECT_DIR$/src/readProbeEnrichInfo.py" />
         <option value="$PROJECT_DIR$/src/discoWorkerThread.py" />
-        <option value="$PROJECT_DIR$/src/discoLive.py" />
+        <option value="$PROJECT_DIR$/src/probeArchiveDownloader.sh" />
         <option value="$PROJECT_DIR$/src/probeEnrichInfo.py" />
+        <option value="$PROJECT_DIR$/src/discoLive.py" />
         <option value="$PROJECT_DIR$/conf/discoLive.conf" />
       </list>
     </option>
@@ -145,6 +160,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -193,7 +209,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
       <pane id="Scratches" />
     </panes>
   </component>
@@ -521,13 +536,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/probeEnrichInfo.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="44" column="79" selection-start-line="44" selection-start-column="79" selection-end-line="44" selection-end-column="79" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/conf/discoLive.conf">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -889,29 +897,39 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/probeEnrichInfo.py">
+    <entry file="file://$PROJECT_DIR$/src/probeArchiveDownloader.sh">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="35" column="75" selection-start-line="35" selection-start-column="75" selection-end-line="35" selection-end-column="75" />
+          <caret line="7" column="14" selection-start-line="7" selection-start-column="14" selection-end-line="7" selection-end-column="14" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/conf/discoLive.conf">
+    <entry file="file://$PROJECT_DIR$/src/probeEnrichInfo.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="40" column="16" selection-start-line="40" selection-start-column="16" selection-end-line="40" selection-end-column="16" />
-          <folding />
+          <caret line="48" column="32" selection-start-line="48" selection-start-column="32" selection-end-line="48" selection-end-column="32" />
+          <folding>
+            <element signature="e#0#16#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/discoLive.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6965443">
-          <caret line="95" column="46" selection-start-line="95" selection-start-column="46" selection-end-line="95" selection-end-column="46" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="380" column="29" selection-start-line="380" selection-start-column="29" selection-end-line="380" selection-end-column="29" />
           <folding>
             <element signature="e#0#47#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/conf/discoLive.conf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.50215983">
+          <caret line="31" column="16" selection-start-line="31" selection-start-column="16" selection-end-line="31" selection-end-column="16" />
+          <folding />
         </state>
       </provider>
     </entry>

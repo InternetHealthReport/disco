@@ -360,7 +360,7 @@ def correlateWithConnectionEvents(burstyProbeInfoDictIn):
 
     return burstyProbeDurations
 
-def getPerEventStats(burstyProbeDurations,output):
+def getPerEventStats(burstyProbeDurations,numProbesInUnit,output):
     for id,inDict in burstyProbeDurations.items():
         startTimes=[]
         endTimes=[]
@@ -376,7 +376,7 @@ def getPerEventStats(burstyProbeDurations,output):
         startMedian=np.median(np.array(startTimes))
         endMedian=np.median(np.array(endTimes))
         durationMedian=np.median(np.array(durations))
-        output.write([id,startMedian,endMedian,durationMedian,probeIds])
+        output.write([id,startMedian,endMedian,durationMedian,numProbesInUnit,probeIds])
 
 def workerThread(threadType):
     intConCountryDict={}
@@ -510,7 +510,7 @@ def workerThread(threadType):
                         burstyProbeInfoDict=getTimeStampsForBurstyProbes(burstyProbeIDs,burstsDict,burstEventDict)
                         burstyProbeDurations=correlateWithConnectionEvents(burstyProbeInfoDict)
                         output=outputWriter(resultfilename='results/discoEventMedians_'+dataDate+'_'+str(key)+'.txt')
-                        getPerEventStats(burstyProbeDurations,output)
+                        getPerEventStats(burstyProbeDurations,numProbesInUnit,output)
                         if processTraceroute:
                             pullTraceroutes()
                     if groupByASNPlot:
@@ -621,12 +621,8 @@ def pullTraceroutes():
             if is_success:
                 print(results)
 if __name__ == "__main__":
-    logging.basicConfig(filename='logs/{0}.log'.format(os.path.basename(sys.argv[0]).split('.')[0]), level=logging.DEBUG,\
-                        format='[%(asctime)s] [%(levelname)s] %(message)s',datefmt='%m-%d-%Y %I:%M:%S')
 
-    logging.info('---Disco Live Initialized---')
     configfile='conf/discoLive.conf'
-    logging.info('Using conf file {0}'.format(configfile))
     config = configparser.ConfigParser()
     try:
         config.sections()
@@ -635,12 +631,47 @@ if __name__ == "__main__":
         logging.error('Missing config: ' + configfile)
         exit(1)
 
+    try:
+        READ_ONILNE=eval(config['RUN_PARAMS']['readStream'])
+        BURST_THRESHOLD=int(config['RUN_PARAMS']['burstLevelThreshold'])
+        SIGNAL_LENGTH=int(config['RUN_PARAMS']['minimumSignalLength'])
+        MIN_PROBES=int(config['RUN_PARAMS']['minimumProbesInUnit'])
+        WAIT_TIME=int(config['RUN_PARAMS']['waitTime'])
+        DETECT_DISCO_BURST=eval(config['RUN_PARAMS']['detectDisconnectBurst'])
+        DETECT_CON_BURST=eval(config['RUN_PARAMS']['detectConnectBurst'])
+        processTraceroute=eval(config['RUN_PARAMS']['processTraceroutes'])
+        dataYear=config['RUN_PARAMS']['dataYear']
+        logLevel=config['RUN_PARAMS']['logLevel'].upper()
+        SPLIT_SIGNAL=eval(config['FILTERS']['splitSignal'])
+        gamma=float(config['KLEINBERG']['gamma'])
+        s=float(config['KLEINBERG']['s'])
+        nScalar=float(config['KLEINBERG']['nScalar'])
+
+        rawDataPlot=eval(config['PLOT_FILTERS']['rawDataPlot'])
+        burstDetectionPlot=eval(config['PLOT_FILTERS']['burstDetectionPlot'])
+        groupByCountryPlot=eval(config['PLOT_FILTERS']['groupByCountryPlot'])
+        groupByASNPlot=eval(config['PLOT_FILTERS']['groupByASNPlot'])
+        groupByControllerPlot=eval(config['PLOT_FILTERS']['groupByControllerPlot'])
+        groupByProbeIDPlot=eval(config['PLOT_FILTERS']['groupByProbeIDPlot'])
+        choroplethPlot=eval(config['PLOT_FILTERS']['choroplethPlot'])
+        copyToServer=eval(config['PLOT_FILTERS']['copyToServer'])
+    except:
+        print('Incorrect or missing parameter(s) in config file!')
+        exit(1)
+
+    logging.basicConfig(filename='logs/{0}.log'.format(os.path.basename(sys.argv[0]).split('.')[0]), level=logLevel,\
+                        format='[%(asctime)s] [%(levelname)s] %(message)s',datefmt='%m-%d-%Y %I:%M:%S')
+
+    logging.info('---Disco Live Initialized---')
+    logging.info('Using conf file {0}'.format(configfile))
+
+    global dataQueueDisconnect
+    global dataQueueConnect
     #For plots
     plotter=plotter()
-
     #Probe Enrichment Info
-    logging.info('Loading Probe Enrichment Info..')
-    probeInfo=probeEnrichInfo()
+    probeInfo=probeEnrichInfo(dataYear=dataYear)
+    logging.info('Loading Probe Enrichment Info from {0}'.format(dataYear))
     probeInfo.loadInfoFromFiles()
     #probeInfo.loadAllInfo()
 
@@ -688,33 +719,6 @@ if __name__ == "__main__":
     numSelectedProbesInUnit=len(selectedProbeIds)
     logging.info('Number of probes selected: {0}'.format(numSelectedProbesInUnit))
     #print('Number of probes selected: {0}'.format(numProbesInUnit))
-
-    try:
-        READ_ONILNE=eval(config['RUN_PARAMS']['readStream'])
-        BURST_THRESHOLD=int(config['RUN_PARAMS']['burstLevelThreshold'])
-        SIGNAL_LENGTH=int(config['RUN_PARAMS']['minimumSignalLength'])
-        MIN_PROBES=int(config['RUN_PARAMS']['minimumProbesInUnit'])
-        WAIT_TIME=int(config['RUN_PARAMS']['waitTime'])
-        DETECT_DISCO_BURST=eval(config['RUN_PARAMS']['detectDisconnectBurst'])
-        DETECT_CON_BURST=eval(config['RUN_PARAMS']['detectConnectBurst'])
-        processTraceroute=eval(config['RUN_PARAMS']['processTraceroutes'])
-        SPLIT_SIGNAL=eval(config['FILTERS']['splitSignal'])
-        gamma=float(config['KLEINBERG']['gamma'])
-        s=float(config['KLEINBERG']['s'])
-        nScalar=float(config['KLEINBERG']['nScalar'])
-
-        rawDataPlot=eval(config['PLOT_FILTERS']['rawDataPlot'])
-        burstDetectionPlot=eval(config['PLOT_FILTERS']['burstDetectionPlot'])
-        groupByCountryPlot=eval(config['PLOT_FILTERS']['groupByCountryPlot'])
-        groupByASNPlot=eval(config['PLOT_FILTERS']['groupByASNPlot'])
-        groupByControllerPlot=eval(config['PLOT_FILTERS']['groupByControllerPlot'])
-        groupByProbeIDPlot=eval(config['PLOT_FILTERS']['groupByProbeIDPlot'])
-        choroplethPlot=eval(config['PLOT_FILTERS']['choroplethPlot'])
-        copyToServer=eval(config['PLOT_FILTERS']['copyToServer'])
-    except:
-        logging.error('Incorrect or missing parameter(s) in config file!')
-        print('Incorrect or missing parameter(s) in config file!')
-        exit(1)
 
     dataFile=None
     dataTimeRangeInSeconds=None
@@ -799,8 +803,6 @@ if __name__ == "__main__":
             for file in eventFiles:
                 if file.endswith('.gz'):
                     logging.info('Processing {0}'.format(file))
-                    global dataQueueDisconnect
-                    global dataQueueConnect
                     dataQueueDisconnect=Queue.Queue()
                     dataQueueConnect=Queue.Queue()
                     plotter.setSuffix(os.path.basename(file).split('_')[0])
