@@ -2,15 +2,16 @@ import threading
 import traceback
 import pickle
 import json
-from os import listdir
-from os.path import isfile, join
+from os import listdir, makedirs
+from os.path import isfile, join, exists
 from datetime import datetime
 
 class probeEnrichInfo():
 
     def __init__(self,dataYear=datetime.now().strftime('%Y')):
         self.lock = threading.RLock()
-        probeDataPath='data/probeArchiveData/{0}'.format(dataYear)
+        self.dataYear=dataYear
+        probeDataPath='data/probeArchiveData/{0}'.format(self.dataYear)
         self.probeInfoFiles = [join(probeDataPath, f) for f in listdir(probeDataPath) if isfile(join(probeDataPath, f))]
         self.asnToProbeIDDict={}
         self.probeIDToASNDict={}
@@ -47,25 +48,26 @@ class probeEnrichInfo():
                                 self.countryToProbeIDDict[country].add(probe['id'])
                     except KeyError:
                         continue
-
-            pickle.dump(self.asnToProbeIDDict,open('data/quickReadModuleData/asnToProbeIDDict.pickle','wb'))
-            pickle.dump(self.probeIDToASNDict,open('data/quickReadModuleData/probeIDToASNDict.pickle','wb'))
-            pickle.dump(self.probeIDToCountryDict,open('data/quickReadModuleData/probeIDToCountryDict.pickle','wb'))
-            pickle.dump(self.countryToProbeIDDict,open('data/quickReadModuleData/countryToProbeIDDict.pickle','wb'))
+            if not exists('data/quickReadModuleData/'):
+                makedirs('data/quickReadModuleData/')
+            pickle.dump(self.asnToProbeIDDict,open('data/quickReadModuleData/'+self.dataYear+'_asnToProbeIDDict.pickle','wb'))
+            pickle.dump(self.probeIDToASNDict,open('data/quickReadModuleData/'+self.dataYear+'_probeIDToASNDict.pickle','wb'))
+            pickle.dump(self.probeIDToCountryDict,open('data/quickReadModuleData/'+self.dataYear+'_probeIDToCountryDict.pickle','wb'))
+            pickle.dump(self.countryToProbeIDDict,open('data/quickReadModuleData/'+self.dataYear+'_countryToProbeIDDict.pickle','wb'))
         except:
             print('Error: Missing probeArchive files ?')
             traceback.print_exc()
         finally:
             self.lock.release()
 
-    def loadAllInfo(self):
+    def fastLoadInfo(self):
         self.lock.acquire()
         try:
-            self.asnToProbeIDDict=pickle.load(open('data/quickReadModuleData/asnToProbeIDDict.pickle'))
-            self.probeIDToASNDict=pickle.load(open('data/quickReadModuleData/probeIDToASNDict.pickle'))
-            self.probeIDToCountryDict=pickle.load(open('data/quickReadModuleData/probeIDToCountryDict.pickle'))
-            self.countryToProbeIDDict=pickle.load(open('data/quickReadModuleData/countryToProbeIDDict.pickle'))
+            self.asnToProbeIDDict=pickle.load(open('data/quickReadModuleData/'+self.dataYear+'_asnToProbeIDDict.pickle'))
+            self.probeIDToASNDict=pickle.load(open('data/quickReadModuleData/'+self.dataYear+'_probeIDToASNDict.pickle'))
+            self.probeIDToCountryDict=pickle.load(open('data/quickReadModuleData/'+self.dataYear+'_probeIDToCountryDict.pickle'))
+            self.countryToProbeIDDict=pickle.load(open('data/quickReadModuleData/'+self.dataYear+'_countryToProbeIDDict.pickle'))
         except:
-            traceback.print_exc()
+            self.loadInfoFromFiles()
         finally:
             self.lock.release()
