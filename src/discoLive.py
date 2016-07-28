@@ -401,7 +401,6 @@ def workerThread(threadType):
         else:
             print('Unknown thread type!')
             exit(1)
-        #print('I am {0}'.format(threadType))
         itr2=itemsToRead
         if itemsToRead>1:
             while itemsToRead:
@@ -411,7 +410,6 @@ def workerThread(threadType):
                     event=dataQueueDisconnect.get()
                 eventLocal.append(event)
                 itemsToRead-=1
-                #dataQueueConnect.task_done()
 
             interestingEvents=getFilteredEvents(eventLocal)
             dataDate=datetime.fromtimestamp(interestingEvents[0]["timestamp"]).strftime('%Y%m%d')
@@ -433,12 +431,17 @@ def workerThread(threadType):
                     numProbesInUnit=len(probeInfo.asnToProbeIDDict[asn])
                     asnKey=True
                 except:
-                    if key=='All':
-                        numProbesInUnit=numSelectedProbesInUnit
-                        allKey=True
-                    else:
-                        numProbesInUnit=len(probeInfo.countryToProbeIDDict[key])
-                        countryKey=True
+                    try:
+                        if key=='All':
+                            numProbesInUnit=numSelectedProbesInUnit
+                            allKey=True
+                        else:
+                            numProbesInUnit=len(probeInfo.countryToProbeIDDict[key])
+                            countryKey=True
+                    except:
+                        logging.error('Error in getting number of probes in unit for key: {0}'.format(key))
+                        print('Error in getting number of probes in unit for key: {0}'.format(key))
+                        continue
 
                 if numProbesInUnit < MIN_PROBES:
                     continue
@@ -493,14 +496,13 @@ def workerThread(threadType):
                     burstsDict[q].append(tmpDict)
 
                 thresholdedEvents=applyBurstThreshold(burstsDict,eventClean)
-                #print('con',key,len(thresholdedEvents),len(eventClean))
 
                 if len(thresholdedEvents)>0:
                     if groupByCountryPlot:
                         intConCountryDict=groupByCountry(thresholdedEvents)
                     if groupByControllerPlot:
                         intConControllerDict=groupByController(thresholdedEvents)
-                    #if groupByProbeIDPlot:
+
                     intConProbeIDDict=groupByProbeID(thresholdedEvents)
                     if threadType=='dis':
                         burstyProbeIDs=intConProbeIDDict.keys()
@@ -639,8 +641,8 @@ if __name__ == "__main__":
     #Probe Enrichment Info
     logging.info('Loading Probe Enrichment Info..')
     probeInfo=probeEnrichInfo()
-    #probeInfo.loadInfoFromFiles()
-    probeInfo.loadAllInfo()
+    probeInfo.loadInfoFromFiles()
+    #probeInfo.loadAllInfo()
 
 
     #Read filters and prepare a set of valid probe IDs

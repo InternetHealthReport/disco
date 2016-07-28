@@ -33,15 +33,16 @@ class probeEnrichInfo():
                             asn=probe['asn_v6']
                         else:
                             continue
-                        if asn not in self.asnToProbeIDDict.keys():
-                            self.asnToProbeIDDict[asn]=set()
-                        self.asnToProbeIDDict[asn].add(probe['id'])
-                        #Populate probeIDToCountryDict
-                        self.probeIDToCountryDict[probe['id']]=probe['country_code']
-                        self.probeIDToASNDict[probe['id']]=asn
+                        if asn is not None and asn != "" and asn != 'None':
+                            if asn not in self.asnToProbeIDDict.keys():
+                                self.asnToProbeIDDict[asn]=set()
+                            self.asnToProbeIDDict[asn].add(probe['id'])
+                            self.probeIDToASNDict[probe['id']]=asn
                         #Populate countryToProbeIDDict
                         country=probe['country_code']
-                        if  country is not None and country != "":
+                        if country is not None and country != "" and country != 'None':
+                            #Populate probeIDToCountryDict
+                            self.probeIDToCountryDict[probe['id']]=country
                             if country not in self.countryToProbeIDDict.keys():
                                 self.countryToProbeIDDict[country]=set()
                             self.countryToProbeIDDict[country].add(probe['id'])
