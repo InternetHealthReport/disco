@@ -11,8 +11,6 @@ class probeEnrichInfo():
     def __init__(self,dataYear=datetime.now().strftime('%Y')):
         self.lock = threading.RLock()
         self.dataYear=dataYear
-        probeDataPath='data/probeArchiveData/{0}'.format(self.dataYear)
-        self.probeInfoFiles = [join(probeDataPath, f) for f in listdir(probeDataPath) if isfile(join(probeDataPath, f))]
         self.asnToProbeIDDict={}
         self.probeIDToASNDict={}
         self.probeIDToCountryDict={}
@@ -20,6 +18,8 @@ class probeEnrichInfo():
 
     def loadInfoFromFiles(self):
         self.lock.acquire()
+        probeDataPath='data/probeArchiveData/{0}'.format(self.dataYear)
+        self.probeInfoFiles = [join(probeDataPath, f) for f in listdir(probeDataPath) if isfile(join(probeDataPath, f))]
         try:
             for pFile in self.probeInfoFiles:
                 probesInfo=json.load(open(pFile))

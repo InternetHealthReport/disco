@@ -1,7 +1,3 @@
-Anant:
-1. Make the code work with stream API
-2. Test burst detection for historical events: TWC, Comcast, AMIX
-3. Check of historical traceroute data is returned in same order as expected from stream
 
-Romain:
-1. Evaluate pybursts lib to check if alpha can be fixed.
+1.Capability to send email alert when burst is detected - prefix based? probe based?
+2.Better UI

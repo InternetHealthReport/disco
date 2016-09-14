@@ -507,10 +507,10 @@ def workerThread(threadType):
                         burstyProbeDurations=correlateWithConnectionEvents(burstyProbeInfoDict)
                         output=outputWriter(resultfilename='results/discoEventMedians_'+dataDate+'_'+str(key)+'.txt')
                         burstEventInfo=getPerEventStats(burstyProbeDurations,numProbesInUnit,output)
-                        if processTraceroute:
-                            #Traceroute Processor
-                            trProcessor=tracerouteProcessor(burstEventInfo,useStream=False)
-                            trProcessor.pullTraceroutes()
+                        #if processTraceroute:
+                        #    #Traceroute Processor
+                        #    trProcessor=tracerouteProcessor(burstEventInfo,useStream=False)
+                        #    trProcessor.pullTraceroutes()
                     if groupByASNPlot:
                         intConASNDict=groupByASN(thresholdedEvents)
                     if groupByCountryPlot and choroplethPlot and not countryKey:
@@ -549,7 +549,6 @@ def workerThread(threadType):
                         if groupByCountryPlot and choroplethPlot and not countryKey:
                             #if len(intConCountryDict) > 1:
                             plotChoropleth('data/ne/choro'+threadType+'Data.txt','figures/'+threadType+'ChoroPlot_'+dataDate+'_'+str(key)+'_'+plotter.suffix+'.png',plotter.getFigNum())
-                        copyToServerFunc(threadType)
                         intConControllerDict.clear()
                         intConProbeIDDict.clear()
                         intConASNDict.clear()
@@ -558,6 +557,7 @@ def workerThread(threadType):
                         traceback.print_exc()
                     finally:
                         plotter.lock.release()
+            copyToServerFunc(threadType)
             for iter in range(0,itr2):
                 if threadType=='con':
                     dataQueueConnect.task_done()
@@ -765,9 +765,25 @@ if __name__ == "__main__":
                     READ_OK=True
                     dataQueueDisconnect.join()
                     dataQueueConnect.join()
-
                 else:
                     logging.info('Ignoring file {0}, its not of correct format.'.format(file))
+            '''
+            try:
+                if processTraceroute:
+                    if os.path.isdir('results'):
+                        resultFiles = [join('results', f) for f in listdir('results') if isfile(join('results', f))]
+                    for fname in resultFiles:
+                        bInfo=[]
+                        with closing(open(fname,'r')) as fp:
+                            for lR in fp:
+                                bInfo.append(lR.rstrip('\n').split('|'))
+                        #Traceroute Processor
+                        trProcessor=tracerouteProcessor(bInfo,useStream=False)
+                        trProcessor.pullTraceroutes()
+            except:
+                traceback.print_exc()
+            '''
+
 
         except:
             logging.error('Error in reading file.')

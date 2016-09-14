@@ -1,9 +1,13 @@
 from __future__ import division
-from matplotlib import pylab as plt
+#import matplotlib
+#matplotlib.use('Agg')
+from matplotlib import pyplot as plt
+#plt=matplotlib.pyplot
 import datetime as dt
 import numpy as np
 import traceback
 import os
+import pandas as pd
 import threading
 import  operator
 
@@ -41,11 +45,7 @@ class plotter():
             #plt.show()
             plt.autoscale()
             plt.savefig(outName)
-            #try:
-            #    command=('scp {0} chekov.netsec.colostate.edu:public_html/iij/{1}/'.format(outName,self.suffix))
-            #    os.system(command)
-            #except:
-            #    pass
+            plt.close(fig)
         except:
             traceback.print_exc()
         finally:
@@ -105,11 +105,7 @@ class plotter():
             fig.autofmt_xdate()
             plt.autoscale()
             plt.savefig(outName)
-            #try:
-            #    command=('scp {0} chekov.netsec.colostate.edu:public_html/iij/{1}/'.format(outName,self.suffix))
-            #    os.system(command)
-            #except:
-            #    pass
+            plt.close(fig)
         except:
             traceback.print_exc()
         finally:
@@ -148,11 +144,7 @@ class plotter():
             fig.autofmt_xdate()
             plt.autoscale()
             plt.savefig(outName)
-            #try:
-            #    command=('scp {0} chekov.netsec.colostate.edu:public_html/iij/{1}/'.format(outName,self.suffix))
-            #    os.system(command)
-            #except:
-            #    pass
+            plt.close(fig)
         except:
             traceback.print_exc()
         finally:
@@ -174,6 +166,68 @@ class plotter():
         self.lock.acquire()
         try:
             self.suffix=suffixName
+        except:
+            traceback.print_exc()
+        finally:
+            self.lock.release()
+
+    def plotBinned(self,dataIn,binSize,outfileName,xlabel='',ylabel='',titleInfo=''):
+        if len(dataIn)==0:
+            return
+        self.lock.acquire()
+        try:
+            #print(dataIn)
+            outName=outfileName+'_'+self.suffix+'.'+self.outputFormat
+            data = [x / 1 for x in dataIn]
+            num=self.getFigNum()
+            print('Plotting Figure {0}: {1}'.format(num,outName))
+            fig = plt.figure(num,figsize=(10,8))
+            #binStart=int(min(data))
+            #binStop=int(max(data))
+            #bins = range(binStart, binStop+1, binSize)
+            plt.xlabel(xlabel)
+            plt.ylabel(ylabel)
+            plt.hist(data,bins=binSize)
+            plt.title(titleInfo)
+            plt.autoscale()
+            plt.savefig(outName)
+            plt.close(fig)
+        except:
+            traceback.print_exc()
+        finally:
+            self.lock.release()
+
+    def plotDensity(self,data,outfileName,xlabel='',ylabel='',titleInfo=''):
+        self.lock.acquire()
+        try:
+            outName=outfileName+'_'+self.suffix+'.'+self.outputFormat
+            df = pd.DataFrame(data)
+            ax=df.plot(kind='density')
+            fig = ax.get_figure()
+            print('Plotting Figure {0}: {1}'.format(1,outName))
+            fig.savefig(outName)
+        except:
+            traceback.print_exc()
+        finally:
+            self.lock.release()
+
+    def ecdf(self,data,outfileName,xlabel='',ylabel='',titleInfo=''):
+        self.lock.acquire()
+        try:
+            outName=outfileName+'_'+self.suffix+'.'+self.outputFormat
+            num=self.getFigNum()
+            print('Plotting Figure {0}: {1}'.format(num,outName))
+            fig = plt.figure(num,figsize=(10,8))
+            plt.xlabel(xlabel)
+            plt.ylabel(ylabel)
+            plt.title(titleInfo)
+            sorted=np.sort(data)
+            yvals=np.arange(len(sorted))/float(len(sorted))
+            plt.plot( sorted, yvals)
+            plt.grid()
+            plt.autoscale()
+            plt.savefig(outName)
+            plt.close(fig)
         except:
             traceback.print_exc()
         finally:
