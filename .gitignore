@@ -90,5 +90,15 @@ ENV/
 
 # Rope project settings
 .ropeproject
+.idea
+*.pickle
+*.data
+*.dat
+*.stdout
+*.json
+*.csv
+*.gz
+*.backup
+
 
 
