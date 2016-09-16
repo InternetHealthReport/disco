@@ -2,6 +2,8 @@ from __future__ import division,print_function
 import pickle
 import logging
 import os
+import json
+from datetime import datetime
 from os import listdir
 from os.path import isfile, join
 import sys
@@ -82,7 +84,7 @@ if __name__ == "__main__":
     geoDate='201601'
     rtree=createRadix(geoDate)
 
-    ot.write(['outageID','percentageFailedTraceroutes','percentageCouldPredictNextIP','problemPrefixes','problemAS'])
+    ot.write(['outageID','trRate','percentageFailedTraceroutes','percentageCouldPredictNextIP','problemProbes','problemPrefixes','problemAS'])
 
     trResultsDir='tracerouteAnalysisResults/'
     if os.path.isdir(trResultsDir):
@@ -98,6 +100,7 @@ if __name__ == "__main__":
             outageID=int(fname.split('.')[0].split('_')[1])
             outageInfo=pickle.load(open(fname,'rb'))
             outageDuration=float(eventsMasterDict[outageID][1])-float(eventsMasterDict[outageID][0])
+            year,month,day=datetime.utcfromtimestamp(float(eventsMasterDict[outageID][0])).strftime("%Y-%m-%d").split('-')
             for msmID,msmTraceInfo in outageInfo.items():
                 #Look at only anchoring measurement
                 #if not (msmID > 5000 and msmID <= 5026):
@@ -120,7 +123,18 @@ if __name__ == "__main__":
 
                                     #cmd="whois {0} | grep OriginAS | awk '{1}print$2{2}'".format(nextExpectedIP,'{','}')
                                     #os.system(cmd)
-            '''
+
+            #Get probe prefixes
+            pFile='probeArchiveData/'+year+'/probeArchive-'+year+month+day+'.json','r'))
+            probesInfo=json.load(open(pFile))
+            for probe in probesInfo:
+                try:
+                    prPrefix=probe['prefix_v4']
+                    if prPrefix!='null':
+                        problemPrefixes.add(probe['asn_v4'])
+                except:
+                    continue
+
             for pIP in problemIPs:
                 rnode = rtree.search_best(pIP)
                 if rnode is not None:
@@ -129,7 +143,7 @@ if __name__ == "__main__":
                     asFromLookups=getOriginASes(lpm,geoDate)
                     for AS in asFromLookups:
                         problemAS.add(AS)
-            '''
+
 
             trRate=calcTR(numberOfTraceroutes,len(problemProbes),outageDuration)
             trRateList.append(trRate)
@@ -147,7 +161,7 @@ if __name__ == "__main__":
                 percentageCouldPredictNextIP=float(numberOfTraceroutesWithValidNextIP/numberOfFailedTraceroutes*100)
 
             #print('Could predict next IP: {0}%'.format(percentageCouldPredictNextIP))
-            ot.write([outageID,trRate,percentageFailedTraceroutes,percentageCouldPredictNextIP,problemPrefixes,problemAS])
+            ot.write([outageID,trRate,percentageFailedTraceroutes,percentageCouldPredictNextIP,problemProbes,problemPrefixes,problemAS])
 
         plotter.ecdf(trRateList,'tracerouteRateDuringOutage',xlabel='Traceroute Rate',ylabel='CDF',titleInfo='Both Measurements')
 

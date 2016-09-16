@@ -2,6 +2,7 @@ import bz2
 import sys
 import ipaddress
 from mongoClient import mongoClient
+from datetime import datetime
 from contextlib import closing
 import cPickle as pickle
 

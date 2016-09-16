@@ -22,7 +22,7 @@ class mongoClient():
         self.db[collection].insert_many(traceroutes)
 
     def insertPingOutage(self,collection,outageInfo):
-        self.db[collection].insert_many(outageInfo)
+        self.db[collection].insert(outageInfo)
 
 if __name__ == "__main__":
     mongodb=mongoClient()
