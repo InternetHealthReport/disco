@@ -1,6 +1,6 @@
 from __future__ import division
-#import matplotlib
-#matplotlib.use('Agg')
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 #plt=matplotlib.pyplot
 import datetime as dt
@@ -224,6 +224,33 @@ class plotter():
             sorted=np.sort(data)
             yvals=np.arange(len(sorted))/float(len(sorted))
             plt.plot( sorted, yvals)
+            plt.grid()
+            plt.autoscale()
+            plt.savefig(outName)
+            plt.close(fig)
+        except:
+            traceback.print_exc()
+        finally:
+            self.lock.release()
+
+    def ecdfs(self,data1,data2,outfileName,xlabel='',ylabel='',titleInfo=''):
+        self.lock.acquire()
+        try:
+            outName=outfileName+'_'+self.suffix+'.'+self.outputFormat
+            num=self.getFigNum()
+            print('Plotting Figure {0}: {1}'.format(num,outName))
+            fig = plt.figure(num,figsize=(10,8))
+            plt.xlabel(xlabel)
+            plt.ylabel(ylabel)
+            plt.title(titleInfo)
+            #data1
+            sorted1=np.sort(data1)
+            yvals=np.arange(len(sorted1))/float(len(sorted1))
+            plt.plot(sorted1, yvals)
+            #data2
+            sorted2=np.sort(data2)
+            yvals=np.arange(len(sorted2))/float(len(sorted2))
+            plt.plot(sorted2, yvals)
             plt.grid()
             plt.autoscale()
             plt.savefig(outName)
