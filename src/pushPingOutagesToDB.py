@@ -49,11 +49,11 @@ if __name__=="__main__":
         elif 'g' in status:
             greeceBool=1
 
-        if (californiaBool==1 or coloradoBool==1 or japanBool==1 or greeceBool==1):
-            outagePrefix=str(ip)+'/24'
-            thisOutage={'outagePrefix':outagePrefix,'outageStart':outageStart,'outageEnd':outageEnd,'duration':duration,'colorado':coloradoBool,\
-                        'japan':japanBool,'california':californiaBool,'greece':greeceBool}
+        #if (californiaBool==1 or coloradoBool==1 or japanBool==1 or greeceBool==1):
+        outagePrefix=str(ip)+'/24'
+        thisOutage={'outagePrefix':outagePrefix,'outageStart':outageStart,'outageEnd':outageEnd,'duration':duration,'colorado':coloradoBool,\
+                    'japan':japanBool,'california':californiaBool,'greece':greeceBool}
 
-            collection='pingoutage_'+year+month+day
-            mongodb.insertPingOutage(collection,thisOutage)
+        collection='pingoutageall_'+year+month+day
+        mongodb.insertPingOutage(collection,thisOutage)
 

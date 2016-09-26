@@ -15,6 +15,7 @@ import traceback
 import csv
 from plotFunctions import plotter
 from mongoClient import mongoClient
+from tracerouteProcessor import tracerouteProcessor
 
 class outputWriter():
     def __init__(self,resultfilename=None):
@@ -60,13 +61,8 @@ def calcTR(numberOfTraceroutes,numberOfProbes,outageDuration):
     elif numberOfProbes==0:
         return 0
     else:
-        rate=round(float(numberOfTraceroutes/numberOfProbes/(outageDuration/60)),4)
-        retRate=round(rate,2)
-        #print(numberOfTraceroutes,numberOfProbes,outageDuration)
-        #print('Rate: {0}'.format(rate))
-        #print('retRate: {0}'.format(retRate))
-        #sys.stdout.flush()
-        return retRate
+        rate=round(float(numberOfTraceroutes/(numberOfProbes*(outageDuration/60))),2)
+        return rate
 
 if __name__ == "__main__":
     logging.basicConfig(filename='logs/{0}.log'.format(os.path.basename(sys.argv[0]).split('.')[0]), level=logging.INFO,\
@@ -75,15 +71,21 @@ if __name__ == "__main__":
     pp=PrettyPrinter()
     plotter=plotter()
     plotter.suffix='Both'
-    ot=outputWriter(resultfilename='outageEval/outageEval11WithLen.txt')
+    ot=outputWriter(resultfilename='outageEval/outageEval11WithLenBothFTR.txt')
 
     #Master trRate List
-    trRateList=[]
     trRateB4List=[]
-    trRatioList=[]
+    trRateAfList=[]
+    trRateOtList=[]
+    trRateList=[]
+    trrRefList=[]
+    trrCalcList=[]
 
     #MongoDB
     mongodb=mongoClient()
+
+    #Traceroute Processor
+    tracerouteProcessor=tracerouteProcessor()
 
     #Load add events
     eventsMasterDict={}
@@ -96,7 +98,7 @@ if __name__ == "__main__":
     geoDate='201601'
     rtree=createRadix(geoDate)
 
-    ot.write(['outageID','trRate','trRateB4','trRatio','percentageFailedTraceroutes','percentageCouldPredictNextIP','problemProbes','lenProblemProbes','problemProbePrefixes24','lenProblemProbePrefixes24',\
+    ot.write(['outageID','trRate','trRateOt','trrRef','trrCalc','percentageFailedTraceroutes','percentageCouldPredictNextIP','problemProbes','lenProblemProbes','problemProbePrefixes24','lenProblemProbePrefixes24',\
               'problemPrefixes','lenProblemPrefixes','problemPrefixes24','lenProblemPrefixes24','defOutagePrefixes',\
               'lenDefOutagePrefixes','defOutageProbePrefixes','lenDefOutageProbePrefixes','problemAS'])
 
@@ -111,7 +113,12 @@ if __name__ == "__main__":
             numberOfTraceroutesB4=0
             numberOfFailedTraceroutesB4=0
             numberOfSuccessfulTraceroutesB4=0
+            numberOfTraceroutesAf=0
+            numberOfFailedTraceroutesAf=0
+            numberOfSuccessfulTraceroutesAf=0
             problemProbes=set()
+            problemProbesB4=set()
+            problemProbesAf=set()
             problemIPs=set()
             problemPrefixes=set()
             problemPrefixes24=set()
@@ -130,10 +137,9 @@ if __name__ == "__main__":
             print('Processing outage: {0}'.format(outageID))
             print('Outage year: {0}'.format(year))
             sys.stdout.flush()
-            if year!='2015':
-                continue
+            probeSet=eventsMasterDict[outageID][2]
             #print(year,month,day)
-            sys.stdout.flush()
+            #sys.stdout.flush()
             for msmID,msmTraceInfo in outageInfo.items():
                 #Look at only anchoring measurement
                 #if not (msmID > 5000 and msmID <= 5026):
@@ -155,9 +161,19 @@ if __name__ == "__main__":
                                     numberOfTraceroutesWithValidNextIP+=1
                             else:
                                 numberOfSuccessfulTraceroutes+=1
-                        traceroutesBeforeOutage=mongodb.getTraceroutes(outageStart-(3*60*60),outageStart,probeID,msmID)
+
+            #Outside of outage
+            windowDuration=(1*60*60)
+            for msmID in tracerouteProcessor.msmIDs:
+                #Look at only anchoring measurement
+                #if not (msmID > 5000 and msmID <= 5026):
+                #if msmID > 5000 and msmID <= 5026:
+                if True:
+                    for ppID in probeSet:
                         try:
+                            traceroutesBeforeOutage=mongodb.getTraceroutes(outageStart-windowDuration,outageStart,ppID,msmID)
                             if len(traceroutesBeforeOutage)>0:
+                                problemProbesB4.add(ppID)
                                 for Jdata in traceroutesBeforeOutage:
                                     numberOfTraceroutesB4+=1
                                     try:
@@ -185,10 +201,43 @@ if __name__ == "__main__":
                                             numberOfSuccessfulTraceroutesB4+=1
                                     except:
                                         pass
+
+                            traceroutesBeforeOutage=mongodb.getTraceroutes(outageEnd,outageEnd+windowDuration,ppID,msmID)
+                            if len(traceroutesBeforeOutage)>0:
+                                problemProbesAf.add(ppID)
+                                for Jdata in traceroutesBeforeOutage:
+                                    numberOfTraceroutesAf+=1
+                                    try:
+                                        hops=Jdata['result']
+                                        trTimestamp=Jdata['timestamp']
+                                        #Populate all hops in this traceroute
+                                        ipsSeen=[]
+                                        for hop in hops:
+                                            thisRunIPs={}
+                                            for run in hop['result']:
+                                                try:
+                                                    hopIP=run['from']
+                                                    if hopIP not in thisRunIPs:
+                                                        thisRunIPs[hopIP]=1
+                                                    else:
+                                                        thisRunIPs[hopIP]+=1
+                                                except:
+                                                    #print(hops)
+                                                    continue
+
+                                            ipsSeen.append(thisRunIPs)
+                                        if not isTraceComplete(ipsSeen):
+                                            numberOfFailedTraceroutesAf+=1
+                                        else:
+                                            numberOfSuccessfulTraceroutesAf+=1
+                                    except:
+                                        pass
                         except:
                             traceback.print_exc()
 
 
+            #Prefix Analysis
+            '''
             #print('Fetching probe prefixes and IPs {0}'.format(outageID))
             #sys.stdout.flush()
             #Get probe prefixes
@@ -224,7 +273,6 @@ if __name__ == "__main__":
             #print('Fetching outage prefixes {0}'.format(outageID))
             #sys.stdout.flush()
             if year=='2015':
-
                 for prf in problemPrefixes24:
                     listOfdefBlocksOutages=mongodb.getPingOutages(outageStart,outageEnd,prf)
                     for blockPrf in listOfdefBlocksOutages:
@@ -234,20 +282,29 @@ if __name__ == "__main__":
                     listOfdefBlocksOutages=mongodb.getPingOutages(outageStart,outageEnd,prf)
                     for blockPrf in listOfdefBlocksOutages:
                         defOutageProbePrefixes.add(blockPrf)
+            '''
 
             #print(numberOfTraceroutes,numberOfTraceroutesB4)
             #print(outageStart,outageEnd,outageDuration)
             #sys.stdout.flush()
-            trRate=calcTR(numberOfTraceroutes,len(problemProbes),outageDuration)
-            trRateB4=calcTR(numberOfTraceroutesB4,len(problemProbes),(3*60*60))
-            trRatio='NA'
-            if trRateB4==0:
-                trRatio=0
-            else:
-                trRatio=float("{0:.2f}".format((trRate/trRateB4)))
-                trRateList.append(trRate)
+            trRateB4=calcTR(numberOfFailedTraceroutesB4,len(probeSet),windowDuration)
+            trRateAf=calcTR(numberOfFailedTraceroutesAf,len(probeSet),windowDuration)
+            trrRef='NA'
+            if trRateAf!=0:
+                trrRef=float("{0:.2f}".format((trRateB4/trRateAf)))
                 trRateB4List.append(trRateB4)
-                trRatioList.append(trRatio)
+                trRateAfList.append(trRateAf)
+                trrRefList.append(trrRef)
+
+
+            trRate=calcTR(numberOfFailedTraceroutes,len(probeSet),outageDuration)
+            trRateOt=calcTR((numberOfFailedTraceroutesAf+numberOfFailedTraceroutesB4),len(probeSet),2*windowDuration)
+            trrCalc='NA'
+            if trRateOt!=0:
+                trrCalc=float("{0:.2f}".format((trRate/trRateOt)))
+                trRateList.append(trRate)
+                trRateOtList.append(trRateOt)
+                trrCalcList.append(trrCalc)
 
             #print(fname,outageID,numberOfTraceroutes,numberOfFailedTraceroutes,numberOfTraceroutesWithValidNextIP)
             #print(problemIPs,problemAS)
@@ -262,11 +319,14 @@ if __name__ == "__main__":
                 percentageCouldPredictNextIP=float(numberOfTraceroutesWithValidNextIP/numberOfFailedTraceroutes*100)
 
             #print('Could predict next IP: {0}%'.format(percentageCouldPredictNextIP))
-            ot.write([outageID,trRate,trRateB4,trRatio,percentageFailedTraceroutes,percentageCouldPredictNextIP,problemProbes,len(problemProbes),problemProbePrefixes24,\
+            ot.write([outageID,trRate,trRateOt,trrRef,trrCalc,percentageFailedTraceroutes,percentageCouldPredictNextIP,problemProbes,len(problemProbes),problemProbePrefixes24,\
                       len(problemProbePrefixes24),problemPrefixes,len(problemPrefixes),problemPrefixes24,len(problemPrefixes24),\
                       defOutagePrefixes,len(defOutagePrefixes),defOutageProbePrefixes,len(defOutageProbePrefixes),problemAS])
 
-        plotter.ecdf(trRatioList,'tracerouteRateRatio',xlabel='Traceroute Rate Ratio',ylabel='CDF',titleInfo='Both Measurements')
+        #plotter.plot2ListsHist(trrRefList,trrCalcList,'TRRs_hist',xlabel='Traceroute Rate Ratio',titleInfo='Anchoring Measurements')
+        #plotter.ecdf(trrCalcList,'tracerouteRateRatio',xlabel='Traceroute Rate Ratio',ylabel='CDF',titleInfo='Anchoring Measurements')
+        #plotter.ecdfs(trRateList,trRateOtList,'tracerouteRates',xlabel='Traceroute Rates',ylabel='CDF',titleInfo='Anchoring Measurements')
+        #plotter.ecdfs(trrCalcList,trrRefList,'tracerouteRateRatiosCalcRef',xlabel='Traceroute Rates',ylabel='CDF',titleInfo='Anchoring Measurements')
 
         print('Done.')
 

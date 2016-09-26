@@ -10,12 +10,14 @@ import os
 import pandas as pd
 import threading
 import  operator
+from scipy.interpolate import UnivariateSpline
+
 
 class plotter():
     def __init__(self):
         self.figNum=0
         self.suffix='live'
-        self.outputFormat='png'
+        self.outputFormat='eps'
         self.lock = threading.RLock()
 
     def plotDict(self,d,outFileName):
@@ -103,6 +105,78 @@ class plotter():
             plt.ylim(0,max(Y)+5)
             #plt.xticks(XTicks,dtListTicks,rotation='80')
             fig.autofmt_xdate()
+            plt.autoscale()
+            plt.savefig(outName)
+            plt.close(fig)
+        except:
+            traceback.print_exc()
+        finally:
+            self.lock.release()
+
+    def plotPDF(self,dataIn1,outfileName,xlabel='',ylabel='',titleInfo=''):
+        N = 1000
+        n = N/10
+        s = np.random.normal(size=N)   # generate your data sample with N elements
+        p, x = np.histogram(s, bins=n) # bin it into n = N/10 bins
+        x = x[:-1] + (x[1] - x[0])/2   # convert bin edges to centers
+        f = UnivariateSpline(x, p, s=n)
+        plt.plot(x, f(x))
+        plt.show()
+
+    def plot2ListsHist(self,dataIn1,dataIn2,outfileName,xlabel='',ylabel='',titleInfo=''):
+        if len(dataIn1)==0:
+            return
+        if len(dataIn2)==0:
+            return
+        self.lock.acquire()
+        try:
+            #print(dataIn)
+            outName=outfileName+'_'+self.suffix+'.'+self.outputFormat
+            num=self.getFigNum()
+            print('Plotting Figure {0}: {1}'.format(num,outName))
+            fig = plt.figure(num,figsize=(10,8))
+            binStart1=0
+            binStop1=int(max(dataIn1))
+            binStart2=0
+            binStop2=int(max(dataIn2))
+            bins1 = range(binStart1, binStop1+1, 10)
+            digitized1=np.digitize(dataIn1, bins1)
+
+            bins2 = range(binStart2, binStop2+1, 10)
+            digitized2=np.digitize(dataIn2, bins2)
+            dtList1=[]
+            for v in bins1:
+                dtList1.append(dt.datetime.utcfromtimestamp(v))
+            dict1={}
+            for val in digitized1:
+                if dtList1[val-1] not in dict1.keys():
+                    dict1[dtList1[val-1]]=1
+                else:
+                    dict1[dtList1[val-1]]+=1
+
+            X1=sorted(digitized1)
+            Y1=dict1.values()
+
+            dtList2=[]
+            for v in bins2:
+                dtList2.append(dt.datetime.utcfromtimestamp(v))
+            dict2={}
+            for val in digitized2:
+                if dtList2[val-1] not in dict2.keys():
+                    dict2[dtList2[val-1]]=1
+                else:
+                    dict2[dtList2[val-1]]+=1
+
+            X2=sorted(digitized2)
+            Y2=dict2.values()
+
+            plt.plot(X1,Y1)
+            plt.plot(X2,Y2)
+
+
+            plt.title(titleInfo)
+            plt.xlabel(xlabel)
+            plt.ylabel(ylabel)
             plt.autoscale()
             plt.savefig(outName)
             plt.close(fig)
@@ -206,6 +280,102 @@ class plotter():
             fig = ax.get_figure()
             print('Plotting Figure {0}: {1}'.format(1,outName))
             fig.savefig(outName)
+        except:
+            traceback.print_exc()
+        finally:
+            self.lock.release()
+
+    def plotDensities(self,data1,data2,outfileName,data1Label='',data2Label='',xlabel='',ylabel='Density',titleInfo='',xticks=None,xlim=None):
+        self.lock.acquire()
+        try:
+            outName=outfileName+'_'+self.suffix+'.'+self.outputFormat
+            num=self.getFigNum()
+            print('Plotting Figure {0}: {1}'.format(num,outName))
+            fig = plt.figure(num)
+            df1 = pd.DataFrame(data1)
+            df1.columns = [data1Label]
+            ax1=df1.plot(kind='density',xticks=xticks,xlim=xlim)
+            ax1.set_xlabel(xlabel,fontsize=16)
+            ax1.set_ylabel(ylabel,fontsize=16)
+            df2 = pd.DataFrame(data2)
+            df2.columns = [data2Label]
+            df2.plot(kind='density',ax=ax1)
+            fig = ax1.get_figure()
+            fig.savefig(outName)
+            plt.close(fig)
+        except:
+            traceback.print_exc()
+        finally:
+            self.lock.release()
+
+    def plot2Hists(self,data1,data2,outfileName,data1Label='',data2Label='',xlabel='',ylabel='',titleInfo='',xticks=None,xlim=None):
+        self.lock.acquire()
+        try:
+            outName=outfileName+'_'+self.suffix+'.'+self.outputFormat
+            num=self.getFigNum()
+            print('Plotting Figure {0}: {1}'.format(num,outName))
+            fig = plt.figure(num,figsize=(5.8,4.6))
+            ax = plt.subplot(111)
+            box = ax.get_position()
+            ax.set_position([box.x0, box.y0 + box.height * 0.15,box.width, box.height * 0.85])
+
+            ax.hist(data1,bins=70,range=[0,2],histtype='step',lw=2,label=data1Label)
+            ax.hist(data2,bins=70,range=[0,2],histtype='step',lw=2,label=data2Label)
+            plt.xlabel(xlabel,fontsize = 18)
+            plt.ylabel(ylabel,fontsize = 18)
+            plt.xticks(fontsize = 18)
+            plt.yticks(fontsize = 18)
+            ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.18),fancybox=True, shadow=True, ncol=2)
+            #plt.legend()
+            #plt.tight_layout()
+            plt.autoscale()
+            #plt.show()
+            fig.savefig(outName)
+            plt.close(fig)
+        except:
+            traceback.print_exc()
+        finally:
+            self.lock.release()
+
+    def plotHeatMap(self,data1,data2,outfileName,xlabel='',ylabel='',titleInfo='',xticks=None,xlim=None):
+        self.lock.acquire()
+        try:
+            outName=outfileName+'_'+self.suffix+'.'+self.outputFormat
+            num=self.getFigNum()
+            print('Plotting Figure {0}: {1}'.format(num,outName))
+            fig = plt.figure(num)
+
+            # Generate some test data
+
+
+            #heatmap, xedges, yedges = np.histogram2d(data1,data2, bins=20)
+            #extent = [0,3,0,3]
+            #plt.imshow(heatmap, extent=extent)
+
+            #plt.hexbin(data1,data2,cmap=plt.cm.Blues_r, bins=30)
+
+            #plt.hist2d(data1,data2,cmap=plt.cm.Blues,bins=70)
+            #extent = [0,3,0,3]
+            #plt.imshow(heatmap, extent=extent)
+            #plt.xlim(0,2)
+            #plt.ylim(0,2)
+
+            #plt.hist2d(data1,data2,bins=70);
+
+            plt.hexbin(data1,data2, cmap="OrRd", gridsize=70, vmax=10, vmin=0, mincnt=0)
+
+            plt.xlim([-0.1,2])
+            plt.ylim([-0.1,2])
+            plt.colorbar()
+
+            plt.xlabel(xlabel)
+            plt.ylabel(ylabel)
+
+
+            plt.xticks(fontsize = 18)
+            plt.yticks(fontsize = 18)
+            plt.savefig(outName)
+            plt.close(fig)
         except:
             traceback.print_exc()
         finally:

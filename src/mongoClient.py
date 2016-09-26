@@ -43,6 +43,15 @@ class mongoClient():
             traceback.print_exc()
         return returnList
 
+    def checkPrefixWasProbed(self,prf):
+        boolRet=True
+        dayStr=datetime.utcfromtimestamp(1427961727).strftime("%Y%m%d")
+        collection='pingoutageall_'+str(dayStr)
+        documents=self.db[collection].find_one({"outagePreifx":prf})
+        if not documents:
+            boolRet=False
+        return boolRet
+
     def insertTraceroutes(self,collection,traceroutes):
         self.db[collection].insert_many(traceroutes)
 
