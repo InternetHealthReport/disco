@@ -4,6 +4,7 @@ import json
 import pandas as pd
 import numpy as np
 from matplotlib import pylab as plt
+import cPickle as pickle
 
 def ecdf(a, **kwargs):
     sorted=np.sort( a )
@@ -123,4 +124,39 @@ def topBursts(data, avgBurstLvl=12, duration=1800, probeRatio=0.33):
         outputFile.write("%s|%s|%s|%s|%s|%s\n" % (i, event["start"].mean(), event["end"].mean(), probes, event["aggregation"].values, event["burstID"].values)) 
 
     return grp
+
+
+def trinocularAgg(duration=1800 ):
+    tri = pickle.load(open("../trinocular/probePrefixOutageTrinocular.pickle","r"))
+    data = []
+    for k, v in tri.iteritems():
+        for outage in v:
+            data.append([k, outage["outageStart"], outage["outageEnd"], outage["outageEnd"]-outage["outageStart"]])
+
+    df = pd.DataFrame(data, columns=["prefix", "start", "end", "duration"] )
+    
+    df = df[ (df["duration"]>duration) ]
+    
+    df["astart"] = df["start"]/1800
+    df["aend"] = df["end"]/1800
+    df["startBin"] = df["astart"].astype(int)
+    df["endBin"] = df["aend"].astype(int)
+
+    grp = df.groupby(["startBin", "endBin"])
+    # The following would aggregate more bursts:
+    # grp = df.groupby(["startBin"])
+
+    outputFile = open("trinocularAggregated.txt", "w")
+    for i, g in enumerate(grp.groups.keys()):
+        event = grp.get_group(g)
+
+        prefixes = set()
+        for p in event["prefix"]:
+            prefixes.add(p)
+
+        if len(prefixes)>10:
+            outputFile.write("%s|%s|%s|%s\n" % (i, event["start"].mean(), event["end"].mean(), prefixes)) 
+
+    return grp
+
 
