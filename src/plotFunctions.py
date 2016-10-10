@@ -2,6 +2,7 @@ from __future__ import division
 import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
+import matplotlib.dates as mdates
 #plt=matplotlib.pyplot
 import datetime as dt
 import numpy as np
@@ -193,7 +194,8 @@ class plotter():
         try:
             outName=name+'_'+self.suffix+'.'+self.outputFormat
             num=self.getFigNum()
-            fig = plt.figure(num)
+            fig = plt.figure(num, figsize=(5,3))
+            ax = fig.add_subplot(1,1,1)
             print('Plotting Figure {0}: {1}'.format(num,outName))
             #print(bursts)
             b = {}
@@ -211,12 +213,22 @@ class plotter():
                 b[q]["y"].append(0)
 
             for q, val in b.iteritems():
-                plt.plot(val["x"], val["y"], label=q,color='c')
-                plt.fill_between(val["x"], val["y"],0,color='c')
+                plt.plot(val["x"], val["y"], label=q,color='#11557c')
+                plt.fill_between(val["x"], val["y"],0,color='#11557c')
 
+            print 
             plt.ylabel("Burst level")
+            plt.xlim([dt.datetime(2016,6,7,7,30), dt.datetime(2016,6,7,12,30)])
+            plt.ylim([0, 15])
             fig.autofmt_xdate()
-            plt.autoscale()
+            # plt.autoscale()
+            ax.xaxis.set_major_locator(mdates.HourLocator(interval=1))   #to get a tick every 15 minutes
+            ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))     #optional formatting 
+            ax.xaxis.set_minor_locator(mdates.MinuteLocator(byminute=[30]))   #to get a tick every 15 minutes
+            ax.xaxis.set_minor_formatter(mdates.DateFormatter(''))     #optional formatting 
+            # ax.set_xticklabels(["","08:00","","09:00","","10:00","","11:00","","12:00",""])
+            plt.grid(True, which="minor", color="0.6", linestyle=":")
+            plt.grid(True, which="major", color="k", linestyle=":")
             plt.savefig(outName)
             plt.close(fig)
         except:
