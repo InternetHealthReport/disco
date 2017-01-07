@@ -1,6 +1,8 @@
 from __future__ import division
 import matplotlib
 matplotlib.use('Agg')
+matplotlib.rcParams['grid.linestyle'] = ":"
+matplotlib.rcParams['grid.color'] = "gray"
 from matplotlib import pyplot as plt
 #plt=matplotlib.pyplot
 import datetime as dt
@@ -381,21 +383,28 @@ class plotter():
         finally:
             self.lock.release()
 
-    def ecdf(self,data,outfileName,xlabel='',ylabel='',titleInfo=''):
+    def ecdf(self,data,outfileName,xlabel='',ylabel='CDF',titleInfo=''):
         self.lock.acquire()
         try:
             outName=outfileName+'_'+self.suffix+'.'+self.outputFormat
             num=self.getFigNum()
             print('Plotting Figure {0}: {1}'.format(num,outName))
-            fig = plt.figure(num,figsize=(10,8))
+            fig = plt.figure(num,figsize=(4,3))
             plt.xlabel(xlabel)
             plt.ylabel(ylabel)
             plt.title(titleInfo)
+            #plt.xlim(0,0.6)
+            #plt.tick_params(labelsize=24)
             sorted=np.sort(data)
-            yvals=np.arange(len(sorted))/float(len(sorted))
-            plt.plot( sorted, yvals)
+            yvals=np.arange(float(len(sorted)))/float(len(sorted))
+            #yvals[len(yvals)-1]=round(yvals[len(yvals)-1],2)
+            yvals[len(yvals)-1]=0.99
             plt.grid()
-            plt.autoscale()
+            plt.plot( sorted, yvals,lw=2)
+            #print(sorted, yvals)
+            plt.tight_layout()
+            #plt.autoscale()
+            #plt.xlim(0,0.6)
             plt.savefig(outName)
             plt.close(fig)
         except:
@@ -409,7 +418,7 @@ class plotter():
             outName=outfileName+'_'+self.suffix+'.'+self.outputFormat
             num=self.getFigNum()
             print('Plotting Figure {0}: {1}'.format(num,outName))
-            fig = plt.figure(num,figsize=(10,8))
+            fig = plt.figure(num,figsize=(8,7))
             plt.xlabel(xlabel)
             plt.ylabel(ylabel)
             plt.title(titleInfo)
@@ -422,6 +431,29 @@ class plotter():
             yvals=np.arange(len(sorted2))/float(len(sorted2))
             plt.plot(sorted2, yvals)
             plt.grid()
+            plt.autoscale()
+            plt.savefig(outName)
+            plt.close(fig)
+        except:
+            traceback.print_exc()
+        finally:
+            self.lock.release()
+
+    def plotPie(self,labels,sizes,explode,outfileName,titleInfo=''):
+        self.lock.acquire()
+        try:
+            outName=outfileName+'_'+self.suffix+'.'+self.outputFormat
+            num=self.getFigNum()
+            print('Plotting Figure {0}: {1}'.format(num,outName))
+            fig = plt.figure(num,figsize=(8,7))
+            plt.pie(sizes,              # data
+                explode=explode,    # offset parameters
+                labels=labels,      # slice labels
+                #colors=colors,      # array of colours
+                autopct='%1.1f%%',  # print the values inside the wedges
+                shadow=True,        # enable shadow
+                startangle=70       # starting angle
+                )
             plt.autoscale()
             plt.savefig(outName)
             plt.close(fig)

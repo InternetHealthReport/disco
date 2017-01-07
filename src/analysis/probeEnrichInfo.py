@@ -15,6 +15,7 @@ class probeEnrichInfo():
         self.probeIDToASNDict={}
         self.probeIDToCountryDict={}
         self.countryToProbeIDDict={}
+        self.probeIDToLocDict={}
 
     def loadInfoFromFiles(self):
         self.lock.acquire()
@@ -46,6 +47,12 @@ class probeEnrichInfo():
                                 if country not in self.countryToProbeIDDict.keys():
                                     self.countryToProbeIDDict[country]=set()
                                 self.countryToProbeIDDict[country].add(probe['id'])
+                            #Populate probeIDToLocDict
+                            lat=probe['latitude']
+                            lon=probe['longitude']
+                            if lat is not None and lat != "" and lat != 'None':
+                                if lon is not None and lon != "" and lon != 'None':
+                                    self.probeIDToLocDict[probe['id']]={'lat':lat,'lon':lon}
                     except KeyError:
                         continue
             if not exists('data/quickReadModuleData/'):
@@ -54,6 +61,7 @@ class probeEnrichInfo():
             pickle.dump(self.probeIDToASNDict,open('data/quickReadModuleData/'+self.dataYear+'_probeIDToASNDict.pickle','wb'))
             pickle.dump(self.probeIDToCountryDict,open('data/quickReadModuleData/'+self.dataYear+'_probeIDToCountryDict.pickle','wb'))
             pickle.dump(self.countryToProbeIDDict,open('data/quickReadModuleData/'+self.dataYear+'_countryToProbeIDDict.pickle','wb'))
+            pickle.dump(self.probeIDToLocDict,open('data/quickReadModuleData/'+self.dataYear+'_probeIDToLocDict.pickle','wb'))
         except:
             print('Error: Missing probeArchive files ?')
             traceback.print_exc()
@@ -67,6 +75,7 @@ class probeEnrichInfo():
             self.probeIDToASNDict=pickle.load(open('data/quickReadModuleData/'+self.dataYear+'_probeIDToASNDict.pickle'))
             self.probeIDToCountryDict=pickle.load(open('data/quickReadModuleData/'+self.dataYear+'_probeIDToCountryDict.pickle'))
             self.countryToProbeIDDict=pickle.load(open('data/quickReadModuleData/'+self.dataYear+'_countryToProbeIDDict.pickle'))
+            self.probeIDToLocDict=pickle.load(open('data/quickReadModuleData/'+self.dataYear+'_probeIDToLocDict.pickle'))
         except:
             self.loadInfoFromFiles()
         finally:

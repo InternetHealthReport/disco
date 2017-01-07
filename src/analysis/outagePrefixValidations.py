@@ -32,7 +32,9 @@ with closing(open('outageEvalData/outageEval30WithLen.txt','r')) as fp:
                 #print(prf,eval(defOutageProbePrefixes))
                 notFoundPrefixes.add(prf)
 
-        #print(len(notFoundPrefixes),float(lenProblemProbePrefixes24)-float(lenDefOutageProbePrefixes))
+        print(len(notFoundPrefixes),float(lenProblemProbePrefixes24)-float(lenDefOutageProbePrefixes))
+
+        continue
 
         if outageID=='76':
             print(notFoundPrefixes)

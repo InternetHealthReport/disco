@@ -39,7 +39,7 @@ class outputWriter():
             self.lock.release()
 
 
-def isTraceComplete(traceList):
+def isTraceComplete(msmID,traceList):
     if len(traceList)==0:
         return False
     #Check if last IP present or not
@@ -51,7 +51,12 @@ def isTraceComplete(traceList):
             allIPsInTrace.add(ip)
     if len(lastHop) > 0:
         if lastHop[0] not in allIPsInTrace:
-            return True
+            #print(msmIDToDstMap[msmID],lastHop[0])
+            if msmID in msmIDToDstMap.keys():
+                if msmIDToDstMap[msmID]==lastHop[0]:
+                    return True
+            else:
+                return True
 
     return False
 
@@ -71,7 +76,7 @@ if __name__ == "__main__":
     pp=PrettyPrinter()
     plotter=plotter()
     plotter.suffix='Both'
-    ot=outputWriter(resultfilename='outageEval/outageEval11WithLenBothFTR.txt')
+    ot=outputWriter(resultfilename='outageEval/outageEval20161001.txt')
 
     #Master trRate List
     trRateB4List=[]
@@ -94,13 +99,20 @@ if __name__ == "__main__":
             outageID,outageStartStr,outageEndStr,probeSet,aggregation,burstID=lR.rstrip('\n').split('|')
             eventsMasterDict[int(outageID)]=[outageStartStr,outageEndStr,eval(probeSet),aggregation,burstID]
 
+    #Load MSMID to Dst map
+    msmIDToDstMap={}
+    with closing(open('data/msmIDToDst.txt')) as fp:
+        for line in fp:
+            mid,dstAddr=line.split(' ')
+            msmIDToDstMap[int(mid)]=dstAddr.rstrip('\n')
+
     # Create a new tree
     geoDate='201601'
     rtree=createRadix(geoDate)
 
-    ot.write(['outageID','trRate','trRateOt','trrRef','trrCalc','percentageFailedTraceroutes','percentageCouldPredictNextIP','problemProbes','lenProblemProbes','problemProbePrefixes24','lenProblemProbePrefixes24',\
+    ot.write(['outageID','trRateSucc','trRateOtSucc','trrRefSucc','trrCalcSucc','trRateFail','trRateOtFail','trrRefFail','trrCalcFail','percentageFailedTraceroutes','percentageCouldPredictNextIP','problemProbes','lenProblemProbes','problemProbePrefixes24','lenProblemProbePrefixes24',\
               'problemPrefixes','lenProblemPrefixes','problemPrefixes24','lenProblemPrefixes24','defOutagePrefixes',\
-              'lenDefOutagePrefixes','defOutageProbePrefixes','lenDefOutageProbePrefixes','problemAS'])
+              'lenDefOutagePrefixes','defOutageProbePrefixes','lenDefOutageProbePrefixes','problemAS','problemProbeAS'])
 
     trResultsDir='tracerouteAnalysisResults/'
     if os.path.isdir(trResultsDir):
@@ -126,6 +138,7 @@ if __name__ == "__main__":
             problemProbePrefixes24=set()
             problemProbeIPs=set()
             problemAS=set()
+            problemProbeAS=set()
             defOutagePrefixes=set()
             defOutageProbePrefixes=set()
             outageID=int(fname.split('.')[0].split('_')[1])
@@ -152,7 +165,7 @@ if __name__ == "__main__":
                             tracerouteIPsWithOccuranceCounts=tracerouteInfo['traceroute']
                             failedHopInfo=tracerouteInfo['failed_hops']
                             lastFailedHop=max(failedHopInfo.keys())
-                            if not isTraceComplete(tracerouteIPsWithOccuranceCounts):
+                            if not isTraceComplete(msmID,tracerouteIPsWithOccuranceCounts):
                                 numberOfFailedTraceroutes+=1
                                 lastSeenIP=failedHopInfo[lastFailedHop]['expected_link'].keys()[0]
                                 nextExpectedIP=failedHopInfo[lastFailedHop]['expected_link'][lastSeenIP]['expected_next_ip']
@@ -195,7 +208,7 @@ if __name__ == "__main__":
                                                     continue
 
                                             ipsSeen.append(thisRunIPs)
-                                        if not isTraceComplete(ipsSeen):
+                                        if not isTraceComplete(msmID,ipsSeen):
                                             numberOfFailedTraceroutesB4+=1
                                         else:
                                             numberOfSuccessfulTraceroutesB4+=1
@@ -226,7 +239,7 @@ if __name__ == "__main__":
                                                     continue
 
                                             ipsSeen.append(thisRunIPs)
-                                        if not isTraceComplete(ipsSeen):
+                                        if not isTraceComplete(msmID,ipsSeen):
                                             numberOfFailedTraceroutesAf+=1
                                         else:
                                             numberOfSuccessfulTraceroutesAf+=1
@@ -237,7 +250,7 @@ if __name__ == "__main__":
 
 
             #Prefix Analysis
-            '''
+
             #print('Fetching probe prefixes and IPs {0}'.format(outageID))
             #sys.stdout.flush()
             #Get probe prefixes
@@ -249,6 +262,8 @@ if __name__ == "__main__":
                     if probe['id'] in problemProbes:
                         prPrefix=(probe['prefix_v4'])
                         prIP=probe['address_v4']
+                        prASN=probe['asn_v4']
+                        problemProbeAS.add(prASN)
                         if prPrefix!='null':
                             problemProbePrefixes.add(prPrefix)
                         if prIP!='null':
@@ -282,29 +297,46 @@ if __name__ == "__main__":
                     listOfdefBlocksOutages=mongodb.getPingOutages(outageStart,outageEnd,prf)
                     for blockPrf in listOfdefBlocksOutages:
                         defOutageProbePrefixes.add(blockPrf)
-            '''
+
 
             #print(numberOfTraceroutes,numberOfTraceroutesB4)
             #print(outageStart,outageEnd,outageDuration)
             #sys.stdout.flush()
-            trRateB4=calcTR(numberOfFailedTraceroutesB4,len(probeSet),windowDuration)
-            trRateAf=calcTR(numberOfFailedTraceroutesAf,len(probeSet),windowDuration)
-            trrRef='NA'
-            if trRateAf!=0:
-                trrRef=float("{0:.2f}".format((trRateB4/trRateAf)))
-                trRateB4List.append(trRateB4)
-                trRateAfList.append(trRateAf)
-                trrRefList.append(trrRef)
+            trRateB4Succ=calcTR(numberOfSuccessfulTraceroutesB4,len(probeSet),windowDuration)
+            trRateAfSucc=calcTR(numberOfSuccessfulTraceroutesAf,len(probeSet),windowDuration)
+            trrRefSucc='NA'
+            if trRateAfSucc!=0:
+                trrRefSucc=float("{0:.2f}".format((trRateB4Succ/trRateAfSucc)))
+                #trRateB4List.append(trRateB4)
+                #trRateAfList.append(trRateAf)
+                #trrRefList.append(trrRef)
 
 
-            trRate=calcTR(numberOfFailedTraceroutes,len(probeSet),outageDuration)
-            trRateOt=calcTR((numberOfFailedTraceroutesAf+numberOfFailedTraceroutesB4),len(probeSet),2*windowDuration)
-            trrCalc='NA'
-            if trRateOt!=0:
-                trrCalc=float("{0:.2f}".format((trRate/trRateOt)))
-                trRateList.append(trRate)
-                trRateOtList.append(trRateOt)
-                trrCalcList.append(trrCalc)
+            trRateSucc=calcTR(numberOfSuccessfulTraceroutes,len(probeSet),outageDuration)
+            trRateOtSucc=calcTR((numberOfSuccessfulTraceroutesAf+numberOfSuccessfulTraceroutesB4),len(probeSet),2*windowDuration)
+            trrCalcSucc='NA'
+            if trRateOtSucc!=0:
+                trrCalcSucc=float("{0:.2f}".format((trRateSucc/trRateOtSucc)))
+                #trRateList.append(trRate)
+                #trRateOtList.append(trRateOt)
+                #trrCalcList.append(trrCalc)
+
+            #print(numberOfSuccessfulTraceroutesB4,numberOfSuccessfulTraceroutesAf,numberOfSuccessfulTraceroutes)
+            #print(trRateB4Succ,trRateAfSucc,trrRefSucc,trRateSucc,trRateOtSucc,trrCalcSucc)
+            #exit(0)
+
+            trRateB4Fail=calcTR(numberOfFailedTraceroutesB4,len(probeSet),windowDuration)
+            trRateAfFail=calcTR(numberOfFailedTraceroutesAf,len(probeSet),windowDuration)
+            trrRefFail='NA'
+            if trRateAfFail!=0:
+                trrRefFail=float("{0:.2f}".format((trRateB4Fail/trRateAfFail)))
+
+
+            trRateFail=calcTR(numberOfFailedTraceroutes,len(probeSet),outageDuration)
+            trRateOtFail=calcTR((numberOfFailedTraceroutesAf+numberOfFailedTraceroutesB4),len(probeSet),2*windowDuration)
+            trrCalcFail='NA'
+            if trRateOtFail!=0:
+                trrCalcFail=float("{0:.2f}".format((trRateFail/trRateOtFail)))
 
             #print(fname,outageID,numberOfTraceroutes,numberOfFailedTraceroutes,numberOfTraceroutesWithValidNextIP)
             #print(problemIPs,problemAS)
@@ -319,9 +351,9 @@ if __name__ == "__main__":
                 percentageCouldPredictNextIP=float(numberOfTraceroutesWithValidNextIP/numberOfFailedTraceroutes*100)
 
             #print('Could predict next IP: {0}%'.format(percentageCouldPredictNextIP))
-            ot.write([outageID,trRate,trRateOt,trrRef,trrCalc,percentageFailedTraceroutes,percentageCouldPredictNextIP,problemProbes,len(problemProbes),problemProbePrefixes24,\
+            ot.write([outageID,trRateSucc,trRateOtSucc,trrRefSucc,trrCalcSucc,trRateFail,trRateOtFail,trrRefFail,trrCalcFail,percentageFailedTraceroutes,percentageCouldPredictNextIP,problemProbes,len(problemProbes),problemProbePrefixes24,\
                       len(problemProbePrefixes24),problemPrefixes,len(problemPrefixes),problemPrefixes24,len(problemPrefixes24),\
-                      defOutagePrefixes,len(defOutagePrefixes),defOutageProbePrefixes,len(defOutageProbePrefixes),problemAS])
+                      defOutagePrefixes,len(defOutagePrefixes),defOutageProbePrefixes,len(defOutageProbePrefixes),problemAS,problemProbeAS])
 
         #plotter.plot2ListsHist(trrRefList,trrCalcList,'TRRs_hist',xlabel='Traceroute Rate Ratio',titleInfo='Anchoring Measurements')
         #plotter.ecdf(trrCalcList,'tracerouteRateRatio',xlabel='Traceroute Rate Ratio',ylabel='CDF',titleInfo='Anchoring Measurements')

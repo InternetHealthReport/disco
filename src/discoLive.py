@@ -70,9 +70,30 @@ def getCleanVal(val,tsClean):
         newVal=val+1
     return newVal
 
+def haversine(lon1, lat1, lon2, lat2):
+        """
+        Calculate the great circle distance between two points
+        on the earth (specified in decimal degrees)
+        """
+        try:
+            # convert decimal degrees to radians
+            lon1, lat1, lon2, lat2 = map(np.radians, [lon1, lat1, lon2, lat2])
+            # haversine formula
+            dlon = lon2 - lon1
+            dlat = lat2 - lat1
+            a = np.sin(dlat/2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon/2)**2
+            c = 2 * np.arcsin(np.sqrt(a))
+            km = 6367 * c
+            return km
+        except:
+            print(lon1, lat1, lon2, lat2)
+            traceback.print_exc()
+
 def getUniqueSignalInEvents(eventList):
     signalMapCountries={}
-
+    masterProbeLocList=[]
+    seenProbes=set()
+    #probeIDFilterByDistance={}
     for event in eventList:
         try:
             probeID=int(event['prb_id'])
@@ -96,8 +117,28 @@ def getUniqueSignalInEvents(eventList):
                 except:
                     #No ASN available
                     pass
+                try:
+                    locDict=probeInfo.probeIDToLocDict[probeID]
+                    if probeID not in seenProbes:
+                        masterProbeLocList.append([probeID,locDict['lat'],locDict['lon']])
+                        seenProbes.add(probeID)
+                except:
+                    traceback.print_exc()
         except:
             pass # Not a valid event
+    if SPLIT_SIGNAL:
+        for iter in range(0,len(masterProbeLocList)-1):
+            id,lat,lon=masterProbeLocList[iter]
+            for iter2 in range(iter+1,len(masterProbeLocList)):
+                id2,lat2,lon2=masterProbeLocList[iter2]
+                dist=haversine(lon,lat,lon2,lat2)
+                if dist<=probeClusterDistanceThreshold:
+                    prKey='pid-'+str(id)
+                    if prKey not in signalMapCountries.keys():
+                        signalMapCountries[prKey]=set()
+                        signalMapCountries[prKey].add(id)
+                    signalMapCountries[prKey].add(id2)
+    logging.info('Events from {0} probes observed'.format(len(seenProbes)))
     return signalMapCountries
 
 def applyBurstThreshold(burstsDict,eventsList):
@@ -416,6 +457,7 @@ def workerThread(threadType):
                 numProbesInUnit=0
                 asnKey=False
                 countryKey=False
+                probeKey=False
                 allKey=False
 
                 if not SPLIT_SIGNAL:
@@ -432,15 +474,20 @@ def workerThread(threadType):
                             numProbesInUnit=numSelectedProbesInUnit
                             allKey=True
                         else:
-                            numProbesInUnit=len(probeInfo.countryToProbeIDDict[key])
-                            countryKey=True
+                            if 'pid' in key:
+                                numProbesInUnit=len(probeIDSet)
+                                probeKey=True
+                            else:
+                                numProbesInUnit=len(probeInfo.countryToProbeIDDict[key])
+                                countryKey=True
                     except:
                         logging.error('Error in getting number of probes in unit for key: {0}'.format(key))
                         print('Error in getting number of probes in unit for key: {0}'.format(key))
                         continue
 
-                if numProbesInUnit < MIN_PROBES:
-                    continue
+                if not probeKey:
+                    if numProbesInUnit < MIN_PROBES:
+                        continue
 
                 timestampDict={}
                 eventClean=[]
@@ -453,7 +500,7 @@ def workerThread(threadType):
                         asn=int(eventVal['asn'])
                     except:
                         pass
-                    if (asnKey and key==asn) or (countryKey and key==probeInfo.probeIDToCountryDict[pID]) or allKey:
+                    if (asnKey and key==asn) or (countryKey and key==probeInfo.probeIDToCountryDict[pID]) or (probeKey and int(key.split('-')[1]) in probeIDSet) or allKey:
                         if pID in probeIDSet:
                             tStamp=float(eventVal['timestamp'])
                             eventVal['timestamp']=tStamp
@@ -626,6 +673,7 @@ if __name__ == "__main__":
 
     #Read filters and prepare a set of valid probe IDs
     filterDict=eval(config['FILTERS']['filterDict'])
+    probeClusterDistanceThreshold=int(config['FILTERS']['probeClusterDistanceThreshold'])
     numSelectedProbesInUnit=None
     asnFilterEnabled=False
     countryFilterEnabled=False

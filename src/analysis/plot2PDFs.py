@@ -1,6 +1,7 @@
 from plotFunctions import plotter
 
 if __name__ == "__main__":
+    '''
     plotter=plotter()
     plotter.suffix='FTRBoth'
 
@@ -14,11 +15,22 @@ if __name__ == "__main__":
 
 
     plotter.suffix='Both'
+    '''
     ref=[1.0,1.0,0.96,0.9,0.98,1.0,0.9,1.0,0.95,1.07,0.9,0.96,1.02,1.0,1.07,1.0,1.03,1.0,1.28,0.82,1.21,0.97,0.0,1.0,1.13,1.06,1.02,1.16,1.0,4.14,1.0,0.98,0.0,1.02,1.04,1.36,1.03,1.3,1.05,0.98,0.91,1.17,0.82,0.97,1.0,1.2,1.02,0.97,0.97,0.98,0.0,0.98,1.65,1.0,0.85,0.0,1.0,0.97,0.97,1.12,0.94,0.98,1.03,1.42,1.32,0.0,0.98,1.17,0.97,1.08,0.86,0.95,1.0,0.0]
     cal=[0.02,0.35,0.07,0.02,0.02,0.02,0.04,0.44,0.02,0.09,0.09,0.02,0.0,0.11,0.19,0.33,0.14,0.37,0.12,0.04,0.09,0.17,0.11,0.39,0.02,0.21,0.11,0.07,0.08,0.0,0.39,0.21,0.0,0.12,0.1,0.02,0.62,0.02,0.25,0.24,0.11,0.15,0.04,0.59,0.33,0.16,0.02,0.1,0.0,0.26,0.25,0.25,0.24,0.15,0.08,0.0,0.03,0.4,0.06,0.02,0.0,0.12,0.08,0.35,0.14,0.1,0.02,0.21,0.02,0.02,0.25,0.03,0.04,0.13]
 
-    plotter.plotDensities(ref,cal,'figures/TRRs_PDF',data1Label='TRR_normal',data2Label='TRR_outage',xlabel='Traceroute Rate Ratio',xlim=xlim,xticks=xticks)
-    plotter.plot2Hists(ref,cal,'figures/TRRs_hist',data1Label='TRR_normal',data2Label='TRR_outage',xlabel='Traceroute Rate Ratio',ylabel='Number of Outages')
+    newref=[]
+    newcal=[]
+    for itr in range(0,len(ref)):
+        if ref[itr]!=0:
+            newref.append(ref[itr])
+            newcal.append(cal[itr])
 
+    #plotter.plotDensities(ref,cal,'figures/TRRs_PDF',data1Label='TRR_normal',data2Label='TRR_outage',xlabel='Traceroute Rate Ratio',xlim=xlim,xticks=xticks)
+    #plotter.plot2Hists(ref,cal,'figures/TRRs_hist',data1Label='TRR_normal',data2Label='TRR_outage',xlabel='Traceroute Rate Ratio',ylabel='Number of Outages')
+
+
+    print(len(ref),len(cal))
+    print(newref,newcal)
 
     #cat outageEval/outageEval11WithLen.txt| awk -F'|' '{print$5}' | grep -v NA | grep -v t | tr '\n' ,
