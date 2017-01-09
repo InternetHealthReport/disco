@@ -93,7 +93,7 @@ def getUniqueSignalInEvents(eventList):
     signalMapCountries={}
     masterProbeLocList=[]
     seenProbes=set()
-    #probeIDFilterByDistance={}
+    probeIDFilterByDistance={}
     for event in eventList:
         try:
             probeID=int(event['prb_id'])
@@ -134,10 +134,24 @@ def getUniqueSignalInEvents(eventList):
                 dist=haversine(lon,lat,lon2,lat2)
                 if dist<=probeClusterDistanceThreshold:
                     prKey='pid-'+str(id)
-                    if prKey not in signalMapCountries.keys():
-                        signalMapCountries[prKey]=set()
-                        signalMapCountries[prKey].add(id)
-                    signalMapCountries[prKey].add(id2)
+                    if prKey not in probeIDFilterByDistance.keys():
+                        probeIDFilterByDistance[prKey]=set()
+                        probeIDFilterByDistance[prKey].add(id)
+                    probeIDFilterByDistance[prKey].add(id2)
+        #Add unique sets to main dict
+        ignoreID=[]
+        for prbID , prbSet in probeIDFilterByDistance.items():
+            if prbID in ignoreID:
+                continue
+            redundantSet=False
+            for prbID2 , prbSet2 in probeIDFilterByDistance.items():
+                if prbID!=prbID2:
+                    if prbSet==prbSet2:
+                        ignoreID.append(prbID2)
+            if prbID not in signalMapCountries.keys():
+                signalMapCountries[prbID]=set()
+            signalMapCountries[prbID]=prbSet
+
     logging.info('Events from {0} probes observed'.format(len(seenProbes)))
     return signalMapCountries
 
@@ -485,9 +499,9 @@ def workerThread(threadType):
                         print('Error in getting number of probes in unit for key: {0}'.format(key))
                         continue
 
-                if not probeKey:
-                    if numProbesInUnit < MIN_PROBES:
-                        continue
+
+                if numProbesInUnit < MIN_PROBES:
+                    continue
 
                 timestampDict={}
                 eventClean=[]

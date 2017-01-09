@@ -1,40 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b44adc08-c0d1-4577-abea-0b408e0e8ab6" name="Default" comment="Push outage data to MongoDB">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/analysis/createOutageInfoPickle.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/analysis/detectRoutingLoops.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/analysis/faultyASAnalysis.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/analysis/faultyIPAnalysis.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/analysis/prefixIntersectionWithTrinocular.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/analysis/successfulTracerouteAnalysis.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/analysis/trinocularProbeBurst.py" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/outageEvalData/.outageEvalBuiltIns.txt.swo" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/outageEvalData/.outageEvalBuiltIns.txt.swp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/outageEvalData/newEval.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/outageEvalData/outageEval.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/outageEvalData/outageEval30WithLen.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/outageEvalData/outageEvalBoth.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/outageEvalData/outageEvalBuiltIns.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/outageEvalData/outageEvalOnlyAnchoring.txt" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/src/detectUnreacheableIP.py" afterPath="$PROJECT_DIR$/src/analysis/detectUnreacheableIP.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/src/downloadData.py" afterPath="$PROJECT_DIR$/src/analysis/downloadData.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/src/expectedLinkOutageEvaluation.py" afterPath="$PROJECT_DIR$/src/analysis/expectedLinkOutageEvaluation.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/src/ip2as.py" afterPath="$PROJECT_DIR$/src/analysis/ip2as.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/src/linkOutageEvalTable.py" afterPath="$PROJECT_DIR$/src/analysis/linkOutageEvalTable.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/src/outagePrefixValidations.py" afterPath="$PROJECT_DIR$/src/analysis/outagePrefixValidations.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/src/plot2PDFs.py" afterPath="$PROJECT_DIR$/src/analysis/plot2PDFs.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/src/plotTRRHeatMap.py" afterPath="$PROJECT_DIR$/src/analysis/plotTRRHeatMap.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/src/probeEnrichInfo.py" afterPath="$PROJECT_DIR$/src/analysis/probeEnrichInfo.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/src/pushPingOutagesToDB.py" afterPath="$PROJECT_DIR$/src/analysis/pushPingOutagesToDB.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/src/tracerouteProcessor.py" afterPath="$PROJECT_DIR$/src/analysis/tracerouteProcessor.py" />
+    <list default="true" id="b44adc08-c0d1-4577-abea-0b408e0e8ab6" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pybursts" afterPath="$PROJECT_DIR$/pybursts" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/conf/discoLive.conf" afterPath="$PROJECT_DIR$/conf/discoLive.conf" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/choropleth.py" afterPath="$PROJECT_DIR$/src/choropleth.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/discoLive.py" afterPath="$PROJECT_DIR$/src/discoLive.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/mongoClient.py" afterPath="$PROJECT_DIR$/src/mongoClient.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/plotFunctions.py" afterPath="$PROJECT_DIR$/src/plotFunctions.py" />
     </list>
     <ignored path="disco.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -58,8 +28,8 @@
       <file leaf-file-name="discoLive.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/discoLive.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.75786465">
-              <caret line="140" column="49" selection-start-line="140" selection-start-column="49" selection-end-line="140" selection-end-column="49" />
+            <state vertical-scroll-proportion="0.5576208">
+              <caret line="132" column="55" selection-start-line="132" selection-start-column="55" selection-end-line="132" selection-end-column="55" />
               <folding>
                 <element signature="e#0#47#0" expanded="true" />
               </folding>
@@ -81,10 +51,8 @@
         <entry file="file://$PROJECT_DIR$/src/plotFunctions.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="2" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="21" />
-              <folding>
-                <element signature="e#0#31#0" expanded="true" />
-              </folding>
+              <caret line="1" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="21" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -103,7 +71,7 @@
         <entry file="file://$PROJECT_DIR$/conf/discoLive.conf">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="61" column="18" selection-start-line="61" selection-start-column="18" selection-end-line="61" selection-end-column="18" />
+              <caret line="35" column="33" selection-start-line="35" selection-start-column="33" selection-end-line="35" selection-end-column="33" />
               <folding />
             </state>
           </provider>
@@ -194,7 +162,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -247,6 +214,7 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scratches" />
       <pane id="Scope" />
     </panes>
   </component>
@@ -507,7 +475,13 @@
       <option name="project" value="LOCAL" />
       <updated>1473835490117</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="Clean up and probe aggregation added.">
+      <created>1483830593128</created>
+      <option name="number" value="00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1483830593128</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -578,7 +552,8 @@
     <MESSAGE value="Revamped a lot. New metrics and plots." />
     <MESSAGE value="Restructured code." />
     <MESSAGE value="Push outage data to MongoDB" />
-    <option name="LAST_COMMIT_MESSAGE" value="Push outage data to MongoDB" />
+    <MESSAGE value="Clean up and probe aggregation added." />
+    <option name="LAST_COMMIT_MESSAGE" value="Clean up and probe aggregation added." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -939,10 +914,8 @@
     <entry file="file://$PROJECT_DIR$/src/plotFunctions.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="2" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="21" />
-          <folding>
-            <element signature="e#0#31#0" expanded="true" />
-          </folding>
+          <caret line="1" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="21" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -972,15 +945,15 @@
     <entry file="file://$PROJECT_DIR$/conf/discoLive.conf">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="61" column="18" selection-start-line="61" selection-start-column="18" selection-end-line="61" selection-end-column="18" />
+          <caret line="35" column="33" selection-start-line="35" selection-start-column="33" selection-end-line="35" selection-end-column="33" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/discoLive.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.75786465">
-          <caret line="140" column="49" selection-start-line="140" selection-start-column="49" selection-end-line="140" selection-end-column="49" />
+        <state vertical-scroll-proportion="0.5576208">
+          <caret line="132" column="55" selection-start-line="132" selection-start-column="55" selection-end-line="132" selection-end-column="55" />
           <folding>
             <element signature="e#0#47#0" expanded="true" />
           </folding>
