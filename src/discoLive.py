@@ -1,5 +1,6 @@
 from __future__ import division, print_function
 
+
 import configparser
 import csv
 import json
@@ -17,7 +18,7 @@ from ripe.atlas.cousteau import AtlasStream
 from choropleth import plotChoropleth
 from plotFunctions import plotter
 from probeEnrichInfo import probeEnrichInfo
-from tracerouteProcessor import tracerouteProcessor
+#from tracerouteProcessor import tracerouteProcessor
 from pprint import PrettyPrinter
 from datetime import datetime
 import gzip
