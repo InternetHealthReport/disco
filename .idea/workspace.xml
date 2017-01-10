@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b44adc08-c0d1-4577-abea-0b408e0e8ab6" name="Default" comment="">
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/analysis/probeEnrichInfo.py" afterPath="$PROJECT_DIR$/src/probeEnrichInfo.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pybursts" afterPath="$PROJECT_DIR$/pybursts" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/discoLive.py" afterPath="$PROJECT_DIR$/src/discoLive.py" />
     </list>
     <ignored path="disco.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -28,8 +28,8 @@
       <file leaf-file-name="discoLive.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/discoLive.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.5576208">
-              <caret line="132" column="55" selection-start-line="132" selection-start-column="55" selection-end-line="132" selection-end-column="55" />
+            <state vertical-scroll-proportion="0.4280267">
+              <caret line="819" column="24" selection-start-line="819" selection-start-column="24" selection-end-line="819" selection-end-column="24" />
               <folding>
                 <element signature="e#0#47#0" expanded="true" />
               </folding>
@@ -38,7 +38,7 @@
         </entry>
       </file>
       <file leaf-file-name="probeEnrichInfo.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/analysis/probeEnrichInfo.py">
+        <entry file="file://$PROJECT_DIR$/src/probeEnrichInfo.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
               <caret line="54" column="36" selection-start-line="54" selection-start-column="36" selection-end-line="54" selection-end-column="36" />
@@ -162,6 +162,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -214,14 +216,12 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scratches" />
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/src/analysis" />
       <recent name="$PROJECT_DIR$/src" />
+      <recent name="$PROJECT_DIR$/src/analysis" />
       <recent name="$PROJECT_DIR$/src/extra" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/src/discModules" />
@@ -481,7 +481,13 @@
       <option name="project" value="LOCAL" />
       <updated>1483830593128</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="Minimum number of probes in 50KM aggregation">
+      <created>1483994073774</created>
+      <option name="number" value="00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1483994073774</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -553,7 +559,8 @@
     <MESSAGE value="Restructured code." />
     <MESSAGE value="Push outage data to MongoDB" />
     <MESSAGE value="Clean up and probe aggregation added." />
-    <option name="LAST_COMMIT_MESSAGE" value="Clean up and probe aggregation added." />
+    <MESSAGE value="Minimum number of probes in 50KM aggregation" />
+    <option name="LAST_COMMIT_MESSAGE" value="Minimum number of probes in 50KM aggregation" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -585,7 +592,7 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/analysis/probeEnrichInfo.py">
+    <entry file="file://$PROJECT_DIR$/src/probeEnrichInfo.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="44" column="79" selection-start-line="44" selection-start-column="79" selection-end-line="44" selection-end-column="79" />
@@ -613,7 +620,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/analysis/probeEnrichInfo.py">
+    <entry file="file://$PROJECT_DIR$/src/probeEnrichInfo.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="33" column="36" selection-start-line="33" selection-start-column="36" selection-end-line="33" selection-end-column="36" />
@@ -934,7 +941,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/analysis/probeEnrichInfo.py">
+    <entry file="file://$PROJECT_DIR$/src/probeEnrichInfo.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="54" column="36" selection-start-line="54" selection-start-column="36" selection-end-line="54" selection-end-column="36" />
@@ -952,8 +959,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/discoLive.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.5576208">
-          <caret line="132" column="55" selection-start-line="132" selection-start-column="55" selection-end-line="132" selection-end-column="55" />
+        <state vertical-scroll-proportion="0.4280267">
+          <caret line="819" column="24" selection-start-line="819" selection-start-column="24" selection-end-line="819" selection-end-column="24" />
           <folding>
             <element signature="e#0#47#0" expanded="true" />
           </folding>
