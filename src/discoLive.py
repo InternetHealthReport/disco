@@ -1,6 +1,5 @@
 from __future__ import division, print_function
 
-
 import configparser
 import csv
 import json
@@ -464,6 +463,8 @@ def workerThread(threadType):
                 itemsToRead-=1
 
             interestingEvents=getFilteredEvents(eventLocal)
+            #if len(interestingEvents)<1:
+            #    continue
             dataDate=datetime.fromtimestamp(interestingEvents[0]["timestamp"]).strftime('%Y%m%d')
             signalMapCountries=getUniqueSignalInEvents(interestingEvents)
 
