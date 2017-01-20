@@ -146,7 +146,7 @@ mongodb=mongoClient()
 #Traceroute Processor
 tracerouteProcessor=tracerouteProcessor()
 
-'''
+
 #Collections
 #collections=['pingoutage_20150609','pingoutage_20150608','pingoutage_20151204',\
 #'pingoutage_20151205','pingoutage_20151102','pingoutage_20151203','pingoutage_20151201','pingoutage_20150601','pingoutage_20150603','pingoutage_20150602',\
@@ -165,7 +165,7 @@ collections=mongodb.getCollectionsLike('pingoutage_')
 prefixOutageTimeDict={}
 for prf in probePrefixes24:
     for collc in collections:
-        print(collc)
+        #print(collc)
         listOfdefBlocksOutages=mongodb.getPingOutagesByDuration(prf,collc,30*60)
         #for blockPrf in listOfdefBlocksOutages:
         #    defOutageProbePrefixes.add(blockPrf)
@@ -177,9 +177,9 @@ for prf in probePrefixes24:
                 prefixOutageTimeDict[prf].append({'outageStart':dict['outageStart'],'outageEnd':dict['outageEnd']})
 
 pickle.dump(prefixOutageTimeDict,open('probePrefixOutageTrinocular.pickle','wb'))
-'''
+
 # data/trinocularAggregated.txt from Romains script
-#trinocularAgg()
+trinocularAgg()
 #collections=['traceroute_2015_12_05','traceroute_2015_12_04','traceroute_2015_12_07','traceroute_2015_12_06',\
 #             'traceroute_2015_12_01' ,'traceroute_2015_12_26','traceroute_2015_12_03','traceroute_2015_12_02',\
 #             'traceroute_2015_12_29','traceroute_2015_12_28','traceroute_2015_12_09','traceroute_2015_12_08',\

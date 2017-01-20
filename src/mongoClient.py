@@ -14,7 +14,7 @@ class mongoClient():
     def getTraceroutes(self,start,end,probeID,msmID):
         returnList=[]
         dayStr=datetime.utcfromtimestamp(float(start)).strftime("%Y%m%d")
-        collection='traceroute_'+str(dayStr)
+        collection='tracerouteNew_'+str(dayStr)
         documents=self.db[collection].find({"prb_id":probeID,"msm_id":msmID})
         for doc in documents:
             if doc['timestamp']>=start and doc['timestamp']<=end:
@@ -24,7 +24,7 @@ class mongoClient():
     def getTraceroutesAtlasDB(self,start,end,probeID,msmID):
         returnList=[]
         year,month,day=datetime.utcfromtimestamp(float(start)).strftime("%Y-%m-%d").split('-')
-        collection='traceroute_'+str(year)+'_'+str(month)+'_'+str(day)
+        collection='tracerouteNew_'+str(year)+'_'+str(month)+'_'+str(day)
         documents=self.dbatlas[collection].find({"prb_id":{"$in":probeID},"timestamp":{"$gte": start, "$lte": end}})
         for doc in documents:
             if doc['msm_id']==msmID:# and doc['timestamp']>=start and doc['timestamp']<=end:
@@ -85,7 +85,7 @@ class mongoClient():
         try:
             documents=self.dbatlas.collection_names()
             for name in documents:
-                if 'traceroute_2015_12_' in name:
+                if 'traceroute_' in name:
                     collections.add(name)
         except:
             traceback.print_exc()

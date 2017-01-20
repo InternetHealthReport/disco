@@ -38,7 +38,7 @@ class tracerouteProcessor():
                 with closing(open(fname,'r')) as fp:
                     for lR in fp:
                         eventLine=lR.split('|')
-                        #print(eventLine)
+                        print(eventLine)
                         probesInBurst=eval(eventLine[3])
                         dayStr=datetime.utcfromtimestamp(float(eventLine[1])).strftime("%Y-%m-%d")
                         if dayStr not in dayToProbesDict.keys():
@@ -150,6 +150,8 @@ def processTraceroutes(lR):
     endTime=datetime.utcfromtimestamp(float(eventLine[1])).strftime('%s')
 
     retTracesDict=trProcessor.getTraceroutesFromDB(pList,startTimestamp,endTime)
+    if len(retTracesDict)==0:
+        logging.info('No traceroutes for event {0}'.format(eventLine[0]))
     try:
         for msmID,probeTraceDict in retTracesDict.items():
             preOutageDataDict={}
@@ -159,6 +161,8 @@ def processTraceroutes(lR):
                 if len(jsonTraceList)>0:
                     writeFlag=True
                     G,dst=trProcessor.toGraph(G,jsonTraceList)
+                else:
+                    logging.info('Found no traceroutes for event {0}, PID {1}, {2} {3}'.format(eventLine[0],pID,startTimestamp,endTime))
             if writeFlag:
                 nx.drawing.nx_agraph.write_dot(G, "topo/topo_{0}_{1}_{2}_{3}.dot".format(dayStr,eventLine[0],msmID,dst))
     except:
@@ -171,7 +175,7 @@ def pullTraceroutes(dictVal):
     for dayStr,probeSet in dictVal.items():
         probeIDs=[]
         year,month,day=dayStr.split('-')
-        collection='traceroute_'+year+month+day
+        collection='tracerouteNew_'+year+month+day
         startTime=datetime(int(year),int(month),int(day),0,0,0)
         endTime=datetime(int(year),int(month),int(day),23,59,59)
         for pid in probeSet:
@@ -263,6 +267,7 @@ if __name__ == "__main__":
             with closing(open(fname,'r')) as fp:
                 eventsToProcess=[]
                 for lR in fp:
+                    print(lR)
                     eventsToProcess.append(lR)
                 logging.info('Starting Pool')
                 try:
@@ -270,7 +275,9 @@ if __name__ == "__main__":
                     pool.map_async(processTraceroutes,eventsToProcess)
                     pool.close()
                     pool.join()
-                    #processTraceroutes(eventsToProcess[0])
+                    #for evt in eventsToProcess:
+                    #    processTraceroutes(evt)
+                    #    break
                 except:
                     traceback.print_exc()
                 logging.info('Pool completed tasks')

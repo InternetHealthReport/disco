@@ -5,7 +5,9 @@ import sys
 from mongoClient import mongoClient
 from multiprocessing import Pool
 import ipaddress
-
+'''
+Code to check how many prefixes seen by RIPE Atlas are also pinged by Trinocular
+'''
 
 def worker(prf):
     mongodb=mongoClient()
