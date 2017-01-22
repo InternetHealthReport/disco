@@ -11,7 +11,7 @@ def calcPer(a,b):
 
 mongodb=mongoClient()
 
-with closing(open('outageEvalData/outageEval30WithLen.txt','r')) as fp:
+with closing(open('outageEval/outageEvalForTMA.txt','r')) as fp:
     for line in fp:
         vals=line.rstrip('\n').split('|')
         if vals[0] in ['outageID']:#Add IDs to ignore here

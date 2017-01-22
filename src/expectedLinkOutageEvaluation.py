@@ -76,7 +76,8 @@ if __name__ == "__main__":
     pp=PrettyPrinter()
     plotter=plotter()
     plotter.suffix='Both'
-    ot=outputWriter(resultfilename='outageEval/outageEval20161001.txt')
+    fname=sys.argv[2]
+    ot=outputWriter(resultfilename='outageEval/'+fname)#outageEvalForTMA.txt')
 
     #Master trRate List
     trRateB4List=[]
@@ -110,11 +111,11 @@ if __name__ == "__main__":
     geoDate='201601'
     rtree=createRadix(geoDate)
 
-    ot.write(['outageID','trRateSucc','trRateOtSucc','trrRefSucc','trrCalcSucc','trRateFail','trRateOtFail','trrRefFail','trrCalcFail','percentageFailedTraceroutes','percentageCouldPredictNextIP','problemProbes','lenProblemProbes','problemProbePrefixes24','lenProblemProbePrefixes24',\
-              'problemPrefixes','lenProblemPrefixes','problemPrefixes24','lenProblemPrefixes24','defOutagePrefixes',\
-              'lenDefOutagePrefixes','defOutageProbePrefixes','lenDefOutageProbePrefixes','problemAS','problemProbeAS'])
+    #ot.write(['outageID','trRateSucc','trRateOtSucc','trrRefSucc','trrCalcSucc','trRateFail','trRateOtFail','trrRefFail','trrCalcFail','percentageFailedTraceroutes','percentageCouldPredictNextIP','problemProbes','lenProblemProbes','problemProbePrefixes24','lenProblemProbePrefixes24',\
+           #   'problemPrefixes','lenProblemPrefixes','problemPrefixes24','lenProblemPrefixes24','defOutagePrefixes',\
+            #  'lenDefOutagePrefixes','defOutageProbePrefixes','lenDefOutageProbePrefixes','problemAS','problemProbeAS'])
 
-    trResultsDir='tracerouteAnalysisResults/'
+    trResultsDir=sys.argv[1]#'tracerouteAnalysisResults/'
     if os.path.isdir(trResultsDir):
         picFiles = [join(trResultsDir, f) for f in listdir(trResultsDir) if isfile(join(trResultsDir, f))]
         for fname in picFiles:
