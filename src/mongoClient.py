@@ -33,7 +33,7 @@ class mongoClient():
 
     def getPingOutages(self,start,end,prefix):
         returnList=[]
-        eleven=float(11*60)
+        eleven=float(30*60)
         dayStr=datetime.utcfromtimestamp(float(start)).strftime("%Y%m%d")
         collection='pingoutage_'+str(dayStr)
         try:
@@ -46,7 +46,7 @@ class mongoClient():
                 #sys.stdout.flush()
                 documents=self.db[collection].find({"outagePrefix":str(blockPrefix)})
                 #print(type(documents))
-                sys.stdout.flush()
+                #sys.stdout.flush()
                 for doc in documents:
                     if doc['outageStart']>=(start-eleven) and doc['outageEnd']<=(end+eleven):
                         #print(doc)
@@ -91,7 +91,22 @@ class mongoClient():
             traceback.print_exc()
         for collc in collections:
             self.dbatlas[collc].create_index([("prb_id", ASCENDING)])
-            #self.dbatlas[collc].create_index([("msm_id", ASCENDING)])
+            self.dbatlas[collc].create_index([("msm_id", ASCENDING)])
+            print(collc)
+            sys.stdout.flush()
+
+    def createIndexesOnTraceroutes(self):
+        collections=set()
+        try:
+            documents=self.db.collection_names()
+            for name in documents:
+                if 'tracerouteNew_' in name:
+                    collections.add(name)
+        except:
+            traceback.print_exc()
+        for collc in collections:
+            self.db[collc].create_index([("prb_id", ASCENDING)])
+            self.db[collc].create_index([("msm_id", ASCENDING)])
             print(collc)
             sys.stdout.flush()
 
@@ -99,11 +114,12 @@ class mongoClient():
         self.db[collection].create_index([("outagePrefix", ASCENDING)])
         print(collection)
 
-    def checkPrefixWasProbed(self,prf):
+    def checkPrefixWasProbed(self,prf,start):
         boolRet=True
-        dayStr=datetime.utcfromtimestamp(1427961727).strftime("%Y%m%d")
+        #1427961727
+        dayStr=datetime.utcfromtimestamp(start).strftime("%Y%m%d")
         collection='pingoutageall_'+str(dayStr)
-        documents=self.db[collection].find_one({"outagePreifx":prf})
+        documents=self.db[collection].find_one({"outagePrefix":prf})
         if not documents:
             boolRet=False
         return boolRet
@@ -126,4 +142,4 @@ class mongoClient():
 if __name__ == "__main__":
     mongodb=mongoClient()
     #mongodb.createIndexesOnCollection('pingoutageall_20150402')
-    mongodb.createIndexesOnAtlas()
+    mongodb.createIndexesOnTraceroutes()

@@ -7,8 +7,8 @@ import glob
 import json
 import pandas as pd
 import numpy as np
-import cPickle as pickle
-#import pickle as pickle
+#import cPickle as pickle
+import pickle as pickle
 from datetime import datetime
 from tracerouteProcessor import tracerouteProcessor
 
@@ -96,20 +96,22 @@ with closing(open('results/aggResults/topEvents.txt','r')) as fp:
         outageIDToOutageStart[outageID]=float(outageStart)
         outageIDToOutageEnd[outageID]=float(outageEnd)
 dayToPrefixDisco={}
-with closing(open('outageEval/outageEval30WithLen.txt','r')) as fp:
+with closing(open('data/outageEvalForTMAFinal30min.txt','r')) as fp:
     for line in fp:
         vals=line.rstrip('\n').split('|')
 
-        outageID,trRate,percentageFailedTraceroutes,percentageCouldPredictNextIP,\
-        problemProbes,lenProblemProbes,problemProbePrefixes24,lenProblemProbePrefixes24,\
-        problemPrefixes,lenProblemPrefixes,problemPrefixes24,lenProblemPrefixes24,defOutagePrefixes,\
-        lenDefOutagePrefixes,defOutageProbePrefixes,lenDefOutageProbePrefixes,problemAS=vals
+        (outageID, trRateSucc, trRateOtSucc, trrRefSucc, trrCalcSucc, trRateFail, trRateOtFail, trrRefFail, \
+         trrCalcFail, percentageFailedTraceroutes, percentageCouldPredictNextIP, problemProbes, lenProblemProbes, \
+         problemProbePrefixes24, lenProblemProbePrefixes24, problemPrefixes, lenProblemPrefixes, problemPrefixes24, \
+         lenProblemPrefixes24, defOutagePrefixes, lenDefOutagePrefixes, defOutageProbePrefixes, \
+         lenDefOutageProbePrefixes, problemAS, problemProbeAS) = vals
 
         if outageID!='outageID':
             dayToPrefixDisco[datetime.utcfromtimestamp(outageIDToOutageStart[outageID]).strftime("%Y%m%d")]=eval(problemProbePrefixes24)
             discoOutageInfo[int(outageID)]={}
             discoOutageInfo[int(outageID)]={'outageStart':outageIDToOutageStart[outageID],'outageEnd':outageIDToOutageEnd[outageID],'prefixes':eval(problemProbePrefixes24)}
 
+    #print(discoOutageInfo)
 
 #Read all probe prefixes
 #Get probe prefixes
@@ -140,23 +142,12 @@ for probe in probesInfo:
         continue
 
 #print(len(probePrefixes24))
-
+'''
 #MongoDB
 mongodb=mongoClient()
 #Traceroute Processor
 tracerouteProcessor=tracerouteProcessor()
 
-
-#Collections
-#collections=['pingoutage_20150609','pingoutage_20150608','pingoutage_20151204',\
-#'pingoutage_20151205','pingoutage_20151102','pingoutage_20151203','pingoutage_20151201','pingoutage_20150601','pingoutage_20150603','pingoutage_20150602',\
-#'pingoutage_20150605','pingoutage_20150604','pingoutage_20150607','pingoutage_20150606','pingoutage_20151128','pingoutage_20151207',\
-#'pingoutage_20151202','pingoutage_20151227','pingoutage_20150713','pingoutage_20150918','pingoutage_20151226','pingoutage_20150831',\
-#'pingoutage_20150528','pingoutage_20150529','pingoutage_20150905','pingoutage_20150520','pingoutage_20150521','pingoutage_20150522']
-
-
-
-# print(len(collections))
 
 #Check which probe prefixes suffered an outage in Trinocular
 
@@ -185,15 +176,18 @@ trinocularAgg()
 #             'traceroute_2015_12_29','traceroute_2015_12_28','traceroute_2015_12_09','traceroute_2015_12_08',\
 #            'traceroute_2015_12_23','traceroute_2015_12_22','traceroute_2015_12_21']
 
-#prefixOutageTimeDict=pickle.load(open('data/probePrefixOutageTrinocular.pickle','rb'))
+'''
+prefixOutageTimeDict=pickle.load(open('data/probePrefixOutageTrinocular.pickle','rb'))
 outageMasterDict={}
 with closing(open('data/trinocularAggregatedSmall.txt','r')) as fp:
     for lineR in fp:
         line=lineR.rstrip('\n')
         outageID,outageStart,outageEnd,prefixes=line.split('|')
         outageMasterDict[outageID]={'prefixes':eval(prefixes),'outageStart':float(outageStart),'outageEnd':float(outageEnd)}
-WINDOW=1*60*60
+
+WINDOW=0.5*60*60
 outageMaster2={}
+seenByDiscoToo={}
 trinocularOutages={}
 for otID,prefixesDict in outageMasterDict.items():
     thisAgg={}
@@ -222,17 +216,18 @@ for otID,prefixesDict in outageMasterDict.items():
         if f:
             thisAgg[asn].append(prefEntry)
 
-    seenByDiscoToo={}
+
     oStart=outageMasterDict[otID]['outageStart']
     oEnd=outageMasterDict[otID]['outageEnd']
     for agg,prefixesInAgg in thisAgg.items():
         if len(prefixesInAgg)>=10:
             for prfs in prefixesInAgg:
-                if otID not in trinocularOutages.keys():
-                    trinocularOutages[otID]={'prefixes':set(),'outageStart':oStart,'outageEnd':oEnd}
-                trinocularOutages[otID]['prefixes'].add(prfs)
+                if prfs in probePrefixes24:
+                    if otID not in trinocularOutages.keys():
+                        trinocularOutages[otID]={'prefixes':set(),'outageStart':oStart,'outageEnd':oEnd}
+                    trinocularOutages[otID]['prefixes'].add(prfs)
             for doid,doDict in discoOutageInfo.items():
-                if abs(doDict['outageStart']-oStart)<=WINDOW:# and abs(doDict['outageEnd']-oEnd)<=WINDOW:
+                if abs(doDict['outageStart']-oStart)<=WINDOW and abs(doDict['outageEnd']-oEnd)<=WINDOW:
                     #print(doDict['outageStart'],oStart)
                     #print(abs(doDict['outageStart']-oStart))
                     for prfs in prefixesInAgg:
@@ -241,10 +236,12 @@ for otID,prefixesDict in outageMasterDict.items():
                                 seenByDiscoToo[otID]={'prefixes':set()}
                             seenByDiscoToo[otID]['prefixes'].add(prfs)
 
+#print(trinocularOutages)
+#print(seenByDiscoToo)
 print('Trinocular outages after filters: '+str(len(trinocularOutages)))
 #print(discoOutageInfo)
 print('Trinocular outages also seen by disco: '+str(len(seenByDiscoToo)))
-
+'''
 for otID,outageDictInfo in trinocularOutages.items():
     outageStart=outageDictInfo['outageStart']
     outageEnd=outageDictInfo['outageEnd']
@@ -404,3 +401,4 @@ for otID,outageDictInfo in trinocularOutages.items():
         print(otID,trRateSucc,trRateOtSucc,trrRefSucc,trrCalcSucc,trRateFail,trRateOtFail,trrRefFail,trrCalcFail,file=fp)
 
     print('Done.')
+'''

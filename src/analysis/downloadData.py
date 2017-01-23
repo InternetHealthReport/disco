@@ -54,7 +54,6 @@ def downloadData(start, end, msmId=7000, timeWindow = timedelta(minutes=24*60) )
 
 
 if __name__ == "__main__":
-    # download yesterday's data
     if len(sys.argv) < 3:
         print "usage: %s year month" % sys.argv[0]
         sys.exit()

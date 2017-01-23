@@ -172,11 +172,13 @@ if __name__ == "__main__":
                                     if kprime not in loopIPsMap[outageID]:
                                         loopIPsMap[outageID].add(k)
             print(outageID,numberOfLoopTraceroutes,numberOfFailedTraceroutes,numberOfTraceroutes)
+            sys.stdout.flush()
             if numberOfTraceroutes>0:
-                trLoop=(numberOfLoopTraceroutes/numberOfFailedTraceroutes*100)
-                percentageTraceroutesWithRoutingLoop=float("{0:.2f}".format(trLoop))
-                ot.write([outageID,percentageTraceroutesWithRoutingLoop])
-                loopdata.append(percentageTraceroutesWithRoutingLoop)
+                if numberOfFailedTraceroutes>0:
+                    trLoop=(numberOfLoopTraceroutes/numberOfFailedTraceroutes*100)
+                    percentageTraceroutesWithRoutingLoop=float("{0:.2f}".format(trLoop))
+                    ot.write([outageID,percentageTraceroutesWithRoutingLoop])
+                    loopdata.append(percentageTraceroutesWithRoutingLoop)
 
         for otID,setOfLoopIPs in loopIPsMap.items():
             sameLoopCounts.append(len(setOfLoopIPs)/numberOfLoopTraceroutesPerOutage[otID]*100)

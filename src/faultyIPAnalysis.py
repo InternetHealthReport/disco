@@ -1,4 +1,7 @@
 from __future__ import division,print_function
+import matplotlib
+#matplotlib.use('Agg')
+#from matplotlib import pyplot as plt
 import pickle
 import os
 from datetime import datetime
@@ -40,9 +43,18 @@ if __name__ == "__main__":
 
     #Load add events
     eventsMasterDict={}
+    filterOutageByAgg=set()
     with closing(open('results/aggResults/topEvents.txt','r')) as fp:
         for lR in fp:
             outageID,outageStartStr,outageEndStr,probeSet,aggregation,burstID=lR.rstrip('\n').split('|')
+            onlyASNs=True
+            for agg in eval(aggregation):
+                try:
+                    int(agg)
+                except:
+                    onlyASNs=False
+            if onlyASNs:
+                filterOutageByAgg.add(int(outageID))
             eventsMasterDict[int(outageID)]=[outageStartStr,outageEndStr,eval(probeSet),aggregation,burstID]
 
     #Load MSMID to Dst map
@@ -54,6 +66,7 @@ if __name__ == "__main__":
 
     plotter=plotter()
 
+    toPlotRatioFaultyIPsPerProbe = []
     trResultsDir='tracerouteAnalysisResults/'
     if os.path.isdir(trResultsDir):
         picFiles = [join(trResultsDir, f) for f in listdir(trResultsDir) if isfile(join(trResultsDir, f))]
@@ -79,10 +92,13 @@ if __name__ == "__main__":
             problemIPToProbeMap={}
             problemPrefix24ToProbeMap={}
 
-            toPlotRatioFaultyIPsPerProbe=[]
+
             defOutagePrefixes=set()
             defOutageProbePrefixes=set()
             outageID=int(fname.split('.')[0].split('_')[1])
+            #if outageID not in filterOutageByAgg:
+            #    continue
+            print('OutageID: '+str(outageID))
             outageInfo=pickle.load(open(fname,'rb'))
             outageStart=float(eventsMasterDict[outageID][0])
             outageEnd=float(eventsMasterDict[outageID][1])
@@ -90,7 +106,7 @@ if __name__ == "__main__":
             year,month,day=datetime.utcfromtimestamp(float(eventsMasterDict[outageID][0])).strftime("%Y-%m-%d").split('-')
             #print('Processing outage: {0}'.format(outageID))
             #print('Outage year: {0}'.format(year))
-            sys.stdout.flush()
+            #sys.stdout.flush()
             probeSet=eventsMasterDict[outageID][2]
             #print(year,month,day)
             #sys.stdout.flush()
@@ -119,7 +135,6 @@ if __name__ == "__main__":
                                     quads=nextExpectedIP.split('.')
                                     p24=quads[0]+'.'+quads[1]+'.'+quads[2]+'.'+'0/24'
 
-
                                     if p24 not in problemPrefix24ToProbeMap.keys():
                                         problemPrefix24ToProbeMap[p24]=set()
                                     problemPrefix24ToProbeMap[p24].add(probeID)
@@ -134,11 +149,17 @@ if __name__ == "__main__":
             #for faultyIP,probesDicts in problemIPToProbeMap.items():
             #    print(faultyIP,float(len(probesDicts)/len(problemProbes)*100))
             #for faultyprefix,probesDicts in problemPrefix24ToProbeMap.items():
-            #    print(faultyprefix,float(len(probesDicts)/len(problemProbes)*100))
-                if len(problemProbesInner)>0 and len(problemIPsInner)>0:
-                    toPlotRatioFaultyIPsPerProbe.append(len(problemIPsInner)/len(problemProbesInner))
+            #   print(faultyprefix,float(len(probesDicts)/len(problemProbes)*100))
+                if len(problemProbesInner)>5 and len(problemIPsInner)>0:
+                    print(len(problemProbesInner), len(problemIPsInner))
+                    sys.stdout.flush()
+                    ratio=float(len(problemIPsInner))/len(problemProbesInner)
+                    toPlotRatioFaultyIPsPerProbe.append(ratio)
+
+    #print(toPlotRatioFaultyIPsPerProbe)
 
     plotter.suffix='Both'
     #print(toPlotRatioFaultyIPsPerProbe)
-    plotter.ecdf(toPlotRatioFaultyIPsPerProbe,'ratioFaultyIPsPerProbe',xlabel='Ratio of #Faulty IPs to #Probes')
+    plotter.ecdf(toPlotRatioFaultyIPsPerProbe,'ratioFaultyIPsPerProbe',xlabel='#Faulty IPs to #Probes',ylabel='CDF #Outages',xlim=[0,1])
+    #print(toPlotRatioFaultyIPsPerProbe)
     #print(numberOfTraceroutes,numberOfFailedTraceroutes,numberOfSuccessfulTraceroutes,numberOfTraceroutesWithValidNextIP)

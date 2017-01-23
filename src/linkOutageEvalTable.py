@@ -11,11 +11,11 @@ failurePercentages={'NA':0,'0':0,'0to50':0,'50to70':0,'70to90':0,'90to100':0}
 with closing(open(sys.argv[1],'r')) as fp:
     for lineR in fp:
         vals=lineR.split('|')
-        fPerS=vals[10]
+        fPerS=vals[9]
         if 'percentage' in fPerS:
             continue
         lengthOfData+=1
-        if fPerS=='NoFTR':
+        if 'No' in fPerS:
             failurePercentages['NA']+=1
             continue
         fPer=float(fPerS)
@@ -38,6 +38,6 @@ for k,v in failurePercentages.items():
     percs.append(perc)
     print(k,perc)
 
-plotter.ecdf(dataToPlot,'percentagePredictedTraceroutes',xlabel='Percentage of Traceroutes with Prediction',ylabel='CDF: #Outages')
+plotter.ecdf(dataToPlot,'percentageFailedTraceroutes',xlabel='Percentage of Failed Traceroutes',ylabel='CDF: #Outages')
 
 #print(sum(percs))

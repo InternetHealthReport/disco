@@ -193,6 +193,7 @@ if __name__ == "__main__":
                                 numberOfSuccessfulTraceroutes+=1
 
     print(labels,[InterAS,ProviderAS,ProvidersProviderAS,NonProviderAS])
+    print([InterAS,ProviderAS,ProvidersProviderAS,NonProviderAS])
     plotter.suffix='Both'
     plotter.plotPie(labels,[InterAS,ProviderAS,ProvidersProviderAS,NonProviderAS],(0, 0.1, 0.1, 0),'pieChartASWhereTRFailed')
 

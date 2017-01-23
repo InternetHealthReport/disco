@@ -393,20 +393,23 @@ class plotter():
         finally:
             self.lock.release()
 
-    def ecdf(self,data,outfileName,xlabel='',ylabel='',titleInfo=''):
+    def ecdf(self,data,outfileName,xlabel='',ylabel='',titleInfo='',xlim=[]):
         self.lock.acquire()
         try:
             outName=outfileName+'_'+self.suffix+'.'+self.outputFormat
             num=self.getFigNum()
             print('Plotting Figure {0}: {1}'.format(num,outName))
-            fig = plt.figure(num,figsize=(10,8))
-            plt.xlabel(xlabel)
-            plt.ylabel(ylabel)
-            plt.title(titleInfo)
+            fig = plt.figure(num)
+            plt.xlabel(xlabel,fontsize=18)
+            plt.ylabel(ylabel,fontsize=18)
+            plt.tick_params(labelsize=18)
+            if len(xlim)>0:
+                plt.xlim(xlim)
+            plt.grid()
+            plt.title(titleInfo,fontsize=16)
             sorted=np.sort(data)
             yvals=np.arange(len(sorted))/float(len(sorted))
             plt.plot( sorted, yvals)
-            plt.grid()
             plt.autoscale()
             plt.savefig(outName)
             plt.close(fig)
@@ -421,10 +424,11 @@ class plotter():
             outName=outfileName+'_'+self.suffix+'.'+self.outputFormat
             num=self.getFigNum()
             print('Plotting Figure {0}: {1}'.format(num,outName))
-            fig = plt.figure(num,figsize=(10,8))
+            fig = plt.figure(num,figsize=(8,6))
             plt.xlabel(xlabel)
             plt.ylabel(ylabel)
             plt.title(titleInfo)
+            plt.grid()
             #data1
             sorted1=np.sort(data1)
             yvals=np.arange(len(sorted1))/float(len(sorted1))
@@ -433,7 +437,6 @@ class plotter():
             sorted2=np.sort(data2)
             yvals=np.arange(len(sorted2))/float(len(sorted2))
             plt.plot(sorted2, yvals)
-            plt.grid()
             plt.autoscale()
             plt.savefig(outName)
             plt.close(fig)
