@@ -465,7 +465,8 @@ def workerThread(threadType):
             interestingEvents=getFilteredEvents(eventLocal)
             #if len(interestingEvents)<1:
             #    continue
-            dataDate=datetime.fromtimestamp(interestingEvents[0]["timestamp"]).strftime('%Y%m%d')
+            dataDate=datetime.utcfromtimestamp(interestingEvents[0]["timestamp"]).strftime('%Y%m%d')
+            (plotter.year,plotter.month,plotter.day) = datetime.utcfromtimestamp(interestingEvents[0]["timestamp"]).strftime('%Y-%m-%d').split('-')
             signalMapCountries=getUniqueSignalInEvents(interestingEvents)
 
             #Manage duplicate values
@@ -536,6 +537,7 @@ def workerThread(threadType):
                     continue
 
                 tsClean.sort()
+
                 #print(tsClean)
                 if rawDataPlot:
                     titleInfoText='Total probes matching filter: {0}\nNumber of probes seen in connection events: {1}'.format(numProbesInUnit,len(probesInFilteredData))
