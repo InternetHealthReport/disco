@@ -19,6 +19,9 @@ class plotter():
         self.figNum=0
         self.suffix='live'
         self.outputFormat='eps'
+        self.year=None
+        self.month = None
+        self.day = None
         self.lock = threading.RLock()
 
     def plotDict(self,d,outFileName):
@@ -216,9 +219,8 @@ class plotter():
                 plt.plot(val["x"], val["y"], label=q,color='#11557c')
                 plt.fill_between(val["x"], val["y"],0,color='#11557c')
 
-            print 
             plt.ylabel("Burst level")
-            plt.xlim([dt.datetime(2016,6,7,7,30), dt.datetime(2016,6,7,12,30)])
+            plt.xlim([dt.datetime(int(self.year),int(self.month),int(self.day),7,30), dt.datetime(int(self.year),int(self.month),int(self.day),12,30)])
             plt.ylim([0, 15])
             fig.autofmt_xdate()
             # plt.autoscale()
