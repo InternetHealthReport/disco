@@ -133,7 +133,7 @@ if __name__ == "__main__":
             outageEnd=float(eventsMasterDict[outageID][1])
             outageDuration=outageEnd-outageStart
             year,month,day=datetime.utcfromtimestamp(float(eventsMasterDict[outageID][0])).strftime("%Y-%m-%d").split('-')
-            print('Processing outage: {0}'.format(outageID))
+            #print('Processing outage: {0}'.format(outageID))
             #print('Outage year: {0}'.format(year))
             sys.stdout.flush()
             probeSet=eventsMasterDict[outageID][2]

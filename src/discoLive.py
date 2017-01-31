@@ -17,6 +17,7 @@ from ripe.atlas.cousteau import AtlasStream
 from choropleth import plotChoropleth
 from plotFunctions import plotter
 from probeEnrichInfo import probeEnrichInfo
+from emailWithAttachment import *
 #from tracerouteProcessor import tracerouteProcessor
 from pprint import PrettyPrinter
 from datetime import datetime
@@ -440,6 +441,7 @@ def workerThread(threadType):
 
     while True:
         eventLocal=[]
+        filesToEmail=[]
         if not READ_OK:
             while not READ_OK:
                 time.sleep(WAIT_TIME)
@@ -463,8 +465,8 @@ def workerThread(threadType):
                 itemsToRead-=1
 
             interestingEvents=getFilteredEvents(eventLocal)
-            #if len(interestingEvents)<1:
-            #    continue
+            if len(interestingEvents)<1:
+                continue
             dataDate=datetime.utcfromtimestamp(interestingEvents[0]["timestamp"]).strftime('%Y%m%d')
             (plotter.year,plotter.month,plotter.day) = datetime.utcfromtimestamp(interestingEvents[0]["timestamp"]).strftime('%Y-%m-%d').split('-')
             signalMapCountries=getUniqueSignalInEvents(interestingEvents)
@@ -545,6 +547,12 @@ def workerThread(threadType):
                 bursts = kleinberg(tsClean,timeRange=dataTimeRangeInSeconds,probesInUnit=numProbesInUnit)
                 if burstDetectionPlot:
                     plotter.plotBursts(bursts,'figures/'+threadType+'Bursts_'+dataDate+'_'+str(key))
+                    filesToEmail.append('figures/'+threadType+'Bursts_'+dataDate+'_'+str(key)+'_'+str(plotter.suffix)+'.'+str(plotter.outputFormat))
+
+                ##Temp code
+                if str(key)=='All':
+                    print(bursts)
+                    #print(tsClean)
 
                 burstsDict={}
                 for brt in bursts:
@@ -571,6 +579,8 @@ def workerThread(threadType):
                         burstyProbeInfoDict=getTimeStampsForBurstyProbes(burstyProbeIDs,burstsDict,burstEventDict)
                         burstyProbeDurations=correlateWithConnectionEvents(burstyProbeInfoDict)
                         output=outputWriter(resultfilename='results/discoEventMedians_'+dataDate+'_'+str(key)+'.txt')
+                        if len(burstyProbeDurations)>0:
+                            filesToEmail.append(output)
                         burstEventInfo=getPerEventStats(burstyProbeDurations,numProbesInUnit,output)
                         #if processTraceroute:
                         #    #Traceroute Processor
@@ -622,6 +632,11 @@ def workerThread(threadType):
                         traceback.print_exc()
                     finally:
                         plotter.lock.release()
+                    try:
+                        send_mail(filesToEmail)
+                    except:
+                        pass #Will not work outside netsec, ignore
+
             copyToServerFunc(threadType)
             for iter in range(0,itr2):
                 if threadType=='con':
@@ -714,6 +729,22 @@ if __name__ == "__main__":
                 try:
                     for id in probeInfo.countryToProbeIDDict[filterValue]:
                         selectedProbeIdsCountry.add(id)
+                except KeyError:
+                    pass
+        elif filterType == 'pid':
+            countryFilterEnabled=True
+            for val in filterDict[filterType]:
+                pid1=int(val)
+                try:
+                    probelDict=probeInfo.probeIDToLocDict[pid1]
+                    lat = probelDict['lat']
+                    lon = probelDict['lon']
+                    for prD,probelDictIn in probeInfo.probeIDToLocDict.items():
+                        lat2 = probelDictIn['lat']
+                        lon2 = probelDictIn['lon']
+                        dist = haversine(lon, lat, lon2, lat2)
+                        if dist <= probeClusterDistanceThreshold:
+                            selectedProbeIdsCountry.add(prD)
                 except KeyError:
                     pass
     selectedProbeIds=set()

@@ -6,10 +6,14 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
 
-def send_mail(send_from, send_to, subject, text, files=None,
-              server="mail.netsec.colostate.edu"):
-    assert isinstance(send_to, list)
+def send_mail(files=None):
 
+    send_to = ["discoalerts@gmail.com"]
+    send_from = "disco@netsec.colostate.edu"
+    text = "Disco detected an outage. See attached files."
+    subject = 'Disco Alert'
+    server = "mail.netsec.colostate.edu"
+    assert isinstance(send_to, list)
     msg = MIMEMultipart()
     msg['From'] = send_from
     msg['To'] = COMMASPACE.join(send_to)
@@ -36,9 +40,6 @@ def send_mail(send_from, send_to, subject, text, files=None,
 
 
 if __name__ == "__main__":
-    send_to=["anant.leo@gmail.com"]
-    send_from = "akshah@netsec.colostate.edu"
-    text="This is a test."
-    subject='Disco Alert'
+
     files=[sys.argv[1]]
-    send_mail(send_from, send_to, subject, text, files=files)
+    send_mail(files=files)
