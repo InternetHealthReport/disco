@@ -49,25 +49,36 @@ def readResults(filesPattern="results/"):
 
     return pd.DataFrame(data, columns=["date", "burstID", "start", "end", "duration", "nbProbes", "probeRatio", "aggregation", "maxBurstLvl", "avgBurstLvl", "probes"] )
 
+def readMultipleResults(filesPattern="results_threshold%s/", threshList = range(2,20, 2)):
 
-def plotthresholdVSnbalarms(data, minThresh=1, maxThresh=22):
+    res = []
+
+    for t in threshList:
+        print "Threshold %s" % t
+        res.append(readResults(filesPattern % t))
+
+    return res, threshList
+
+def plotthresholdVSnbalarms(dataList, threshList):
     plt.figure()
-    for label, duration in [["10 min.", 600], ["30 min.", 1800], ["60 min.", 3600]]:
+    for label, duration in [["30 min.", 1800]]: #[["10 min.", 600], ["30 min.", 1800], ["60 min.", 3600]]:
         y = []
-        x = range(minThresh, maxThresh)
+        x = threshList
 
-        for i in x: 
-            grp = topBursts(data, avgBurstLvl=i, duration=duration)
+        for i, t in enumerate(x): 
+            grp = topBursts(dataList[i], avgBurstLvl=t, duration=duration)
             y.append(len(grp))
 
-        y = np.array(y)/float(y[0])
+        # Normalize y axis
+        # y = np.array(y)/float(y[0])
 
         plt.plot(x, y, label=label)
 
-        
     plt.xlabel("Threshold value")
-    plt.ylabel("Relative nb. of events")
-    plt.legend()
+    plt.ylabel("Number of events")
+    plt.ylim([0, 1100])
+    plt.xlim([2, 24])
+    # plt.legend()
     plt.tight_layout()
     plt.savefig("threshold_events.eps")
 
