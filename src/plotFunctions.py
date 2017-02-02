@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 import matplotlib.dates as mdates
 #plt=matplotlib.pyplot
 import datetime as dt
+from datetime import datetime
 import numpy as np
 import traceback
 import os
@@ -68,10 +69,15 @@ class plotter():
             num=self.getFigNum()
             print('Plotting Figure {0}: {1}'.format(num,outName))
             fig = plt.figure(num,figsize=(10,8))
-            binStart=int(min(data))
-            binStop=int(max(data))
+            lowestTime=min(data)
+            #binStart=int(min(data))
+            year, month, day = datetime.utcfromtimestamp(float(lowestTime)).strftime("%Y-%m-%d").split('-')
+            #binStop=int(max(data))
+            binStart=int(datetime(int(year),int(month),int(day), 0, 0).strftime('%s'))
+            binStop=int(datetime(int(year), int(month), int(day), 23, 59).strftime('%s'))
+
             #bins = numpy.linspace(binStart, binStop, 60)
-            bins = range(binStart, binStop+1, 60)
+            bins = range(binStart, binStop+1, 20)
             digitized=np.digitize(data, bins)
             #print(digitized)
             dtList=[]
@@ -102,7 +108,7 @@ class plotter():
                 #print(iters,dtList[iters])
 
             Y=dict.values()
-
+            plt.xlim(datetime(int(year),int(month),int(day), 0, 0),datetime(int(year),int(month),int(day), 23, 59))
             plt.plot(X,Y)
             plt.title(titleInfo)
             #print(dict)
@@ -197,7 +203,7 @@ class plotter():
         try:
             outName=name+'_'+self.suffix+'.'+self.outputFormat
             num=self.getFigNum()
-            fig = plt.figure(num, figsize=(5,3))
+            fig = plt.figure(num, figsize=(15,3))
             ax = fig.add_subplot(1,1,1)
             print('Plotting Figure {0}: {1}'.format(num,outName))
             #print(bursts)
@@ -220,7 +226,7 @@ class plotter():
                 plt.fill_between(val["x"], val["y"],0,color='#11557c')
 
             plt.ylabel("Burst level")
-            plt.xlim([dt.datetime(int(self.year),int(self.month),int(self.day),7,30), dt.datetime(int(self.year),int(self.month),int(self.day),12,30)])
+            plt.xlim([dt.datetime(int(self.year),int(self.month),int(self.day),0,0), dt.datetime(int(self.year),int(self.month),int(self.day),23,59)])
             plt.ylim([0, 15])
             fig.autofmt_xdate()
             # plt.autoscale()
@@ -395,7 +401,7 @@ class plotter():
         finally:
             self.lock.release()
 
-    def ecdf(self,data,outfileName,xlabel='',ylabel='',titleInfo='',xlim=[]):
+    def ecdf(self,data,outfileName,xlabel='',ylabel='CDF',titleInfo='',xlim=[]):
         self.lock.acquire()
         try:
             outName=outfileName+'_'+self.suffix+'.'+self.outputFormat
@@ -413,6 +419,7 @@ class plotter():
             yvals=np.arange(len(sorted))/float(len(sorted))
             plt.plot( sorted, yvals)
             plt.autoscale()
+            plt.tight_layout()
             plt.savefig(outName)
             plt.close(fig)
         except:
