@@ -417,7 +417,7 @@ class plotter():
             plt.title(titleInfo) #,fontsize=16)
             sorted=np.sort(data)
             yvals=np.arange(len(sorted))/float(len(sorted))
-            plt.plot( sorted, yvals)
+            plt.plot( sorted, yvals,lw=2)
             plt.autoscale()
             plt.tight_layout()
             plt.savefig(outName)
