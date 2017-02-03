@@ -12,6 +12,7 @@ with closing(open(sys.argv[1],'r')) as fp:
     for lineR in fp:
         vals=lineR.split('|')
         fPerS=vals[9]
+        outageID=vals[0]
         if 'percentage' in fPerS:
             continue
         lengthOfData+=1
@@ -21,6 +22,7 @@ with closing(open(sys.argv[1],'r')) as fp:
         fPer=float(fPerS)
         dataToPlot.append(fPer)
         if (fPer==0):
+            print('Outage ID for 0: {0}'.format(outageID))
             failurePercentages['0']+=1
         elif (fPer>0 and fPer<50):
             failurePercentages['0to50']+=1

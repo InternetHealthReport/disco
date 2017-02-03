@@ -2,22 +2,17 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="b44adc08-c0d1-4577-abea-0b408e0e8ab6" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/analyzeSuccTRPickle.py" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/figures/deltaDuration_End.eps" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/figures/deltaDuration_Start.eps" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/src/analysis/successfulTracerouteAnalysis.py" afterPath="$PROJECT_DIR$/src/successfulTracerouteAnalysis.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pybursts" afterPath="$PROJECT_DIR$/pybursts" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/all-burst.pdf" afterPath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/all-burst.pdf" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/burst.pdf" afterPath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/burst.pdf" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/conf/discoLive.conf" afterPath="$PROJECT_DIR$/conf/discoLive.conf" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/data/quickReadModuleData/2014_asnToProbeIDDict.pickle" afterPath="$PROJECT_DIR$/data/quickReadModuleData/2014_asnToProbeIDDict.pickle" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/data/quickReadModuleData/2014_countryToProbeIDDict.pickle" afterPath="$PROJECT_DIR$/data/quickReadModuleData/2014_countryToProbeIDDict.pickle" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/data/quickReadModuleData/2016_asnToProbeIDDict.pickle" afterPath="$PROJECT_DIR$/data/quickReadModuleData/2016_asnToProbeIDDict.pickle" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/data/quickReadModuleData/2016_countryToProbeIDDict.pickle" afterPath="$PROJECT_DIR$/data/quickReadModuleData/2016_countryToProbeIDDict.pickle" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/results/discoEventMedians_20140827_All.txt" afterPath="$PROJECT_DIR$/results/discoEventMedians_20140827_All.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/detectRoutingLoops.py" afterPath="$PROJECT_DIR$/src/detectRoutingLoops.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/analyzeSuccTRPickle.py" afterPath="$PROJECT_DIR$/src/analyzeSuccTRPickle.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/plot-all" afterPath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/plot-all" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/plot-burst" afterPath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/plot-burst" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/probe-connected-abs.txt" afterPath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/probe-connected-abs.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/stepped-burst.txt" afterPath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/stepped-burst.txt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/discoLive.py" afterPath="$PROJECT_DIR$/src/discoLive.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/emailWithAttachment.py" afterPath="$PROJECT_DIR$/src/emailWithAttachment.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/plotFunctions.py" afterPath="$PROJECT_DIR$/src/plotFunctions.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/linkOutageEvalTable.py" afterPath="$PROJECT_DIR$/src/linkOutageEvalTable.py" />
     </list>
     <ignored path="disco.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -37,36 +32,34 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="detectRoutingLoops.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/detectRoutingLoops.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="896">
-              <caret line="143" column="42" lean-forward="false" selection-start-line="143" selection-start-column="42" selection-end-line="143" selection-end-column="42" />
-              <folding>
-                <element signature="e#0#46#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="plotFunctions.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/plotFunctions.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="236">
+            <state relative-caret-position="221">
               <caret line="414" column="19" lean-forward="false" selection-start-line="414" selection-start-column="19" selection-end-line="414" selection-end-column="19" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="discoLive.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="discoLive.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/discoLive.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="315">
-              <caret line="460" column="48" lean-forward="false" selection-start-line="460" selection-start-column="48" selection-end-line="460" selection-end-column="48" />
+            <state relative-caret-position="209">
+              <caret line="553" column="34" lean-forward="true" selection-start-line="553" selection-start-column="34" selection-end-line="553" selection-end-column="34" />
               <folding>
                 <element signature="e#0#47#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="plot-all" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/plot-all">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="315">
+              <caret line="21" column="24" lean-forward="true" selection-start-line="21" selection-start-column="24" selection-end-line="21" selection-end-column="24" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -86,8 +79,8 @@
       <file leaf-file-name="linkOutageEvalTable.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/linkOutageEvalTable.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="300">
-              <caret line="23" column="38" lean-forward="false" selection-start-line="23" selection-start-column="38" selection-end-line="23" selection-end-column="38" />
+            <state relative-caret-position="330">
+              <caret line="25" column="4" lean-forward="true" selection-start-line="25" selection-start-column="4" selection-end-line="25" selection-end-column="4" />
               <folding />
             </state>
           </provider>
@@ -96,8 +89,8 @@
       <file leaf-file-name="analyzeSuccTRPickle.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/analyzeSuccTRPickle.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="435">
-              <caret line="29" column="4" lean-forward="false" selection-start-line="29" selection-start-column="4" selection-end-line="29" selection-end-column="4" />
+            <state relative-caret-position="285">
+              <caret line="19" column="8" lean-forward="false" selection-start-line="19" selection-start-column="8" selection-end-line="19" selection-end-column="8" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -132,6 +125,8 @@
       <find>locDict</find>
       <find>successfullTraceroutesOutageIDToMsmID</find>
       <find>durationsOfDeltaStart</find>
+      <find>print</find>
+      <find>tmar</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -140,7 +135,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/plotFunctions.py" />
         <option value="$PROJECT_DIR$/discoLive.py" />
         <option value="$PROJECT_DIR$/scpResults.sh" />
         <option value="$PROJECT_DIR$/scpResultsFile.sh" />
@@ -167,7 +161,6 @@
         <option value="$PROJECT_DIR$/src/mongoClient.py" />
         <option value="$PROJECT_DIR$/src/analysis/plotCDF.py" />
         <option value="$PROJECT_DIR$/src/analysis/comparisonWithTrinocular/trinocularProbeBurst.py" />
-        <option value="$PROJECT_DIR$/src/linkOutageEvalTable.py" />
         <option value="$PROJECT_DIR$/src/analysis/faultyIPAnalysis.py" />
         <option value="$PROJECT_DIR$/src/trinocularProbeBurst.py" />
         <option value="$PROJECT_DIR$/.gitignore" />
@@ -189,8 +182,10 @@
         <option value="$PROJECT_DIR$/src/successfulTracerouteAnalysis.py" />
         <option value="$PROJECT_DIR$/src/analysis/analyzeSuccTRPickle.py" />
         <option value="$PROJECT_DIR$/src/plotFunctions.py" />
+        <option value="$PROJECT_DIR$/src/linkOutageEvalTable.py" />
         <option value="$PROJECT_DIR$/src/analyzeSuccTRPickle.py" />
         <option value="$PROJECT_DIR$/src/discoLive.py" />
+        <option value="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/plot-all" />
       </list>
     </option>
   </component>
@@ -253,6 +248,46 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="disco" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="disco" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="comparisonWithCountMetric" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="disco" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="disco" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="comparisonWithCountMetric" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="kenya-outage" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -748,13 +783,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/extra/discoWorkerThread.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="322" column="31" lean-forward="false" selection-start-line="322" selection-start-column="31" selection-end-line="322" selection-end-column="31" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/scpResultsFile.sh">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -845,13 +873,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/detectUnreacheableIP.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="885">
-          <caret line="78" column="48" lean-forward="true" selection-start-line="78" selection-start-column="48" selection-end-line="78" selection-end-column="48" />
         </state>
       </provider>
     </entry>
@@ -982,13 +1003,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/faultyIPAnalysis.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="549">
-          <caret line="150" column="55" lean-forward="false" selection-start-line="150" selection-start-column="55" selection-end-line="150" selection-end-column="55" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/faultyASAnalysis.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2760">
@@ -1046,46 +1060,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/detectRoutingLoops.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="896">
-          <caret line="143" column="42" lean-forward="false" selection-start-line="143" selection-start-column="42" selection-end-line="143" selection-end-column="42" />
-          <folding>
-            <element signature="e#0#46#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/plotFunctions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="236">
-          <caret line="414" column="19" lean-forward="false" selection-start-line="414" selection-start-column="19" selection-end-line="414" selection-end-column="19" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/analyzeSuccTRPickle.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="435">
-          <caret line="29" column="4" lean-forward="false" selection-start-line="29" selection-start-column="4" selection-end-line="29" selection-end-column="4" />
-          <folding>
-            <element signature="e#0#13#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/outagePrefixValidations.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="915">
           <caret line="66" column="66" lean-forward="true" selection-start-line="62" selection-start-column="8" selection-end-line="66" selection-end-column="66" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/linkOutageEvalTable.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="300">
-          <caret line="23" column="38" lean-forward="false" selection-start-line="23" selection-start-column="38" selection-end-line="23" selection-end-column="38" />
           <folding />
         </state>
       </provider>
@@ -1100,13 +1078,73 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/detectRoutingLoops.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="56">
+          <caret line="143" column="42" lean-forward="false" selection-start-line="143" selection-start-column="42" selection-end-line="143" selection-end-column="42" />
+          <folding>
+            <element signature="e#0#46#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/detectUnreacheableIP.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-814">
+          <caret line="78" column="48" lean-forward="true" selection-start-line="78" selection-start-column="48" selection-end-line="78" selection-end-column="48" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/faultyIPAnalysis.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="236">
+          <caret line="124" column="16" lean-forward="true" selection-start-line="124" selection-start-column="16" selection-end-line="124" selection-end-column="16" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/plotFunctions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="414" column="19" lean-forward="false" selection-start-line="414" selection-start-column="19" selection-end-line="414" selection-end-column="19" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/linkOutageEvalTable.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="330">
+          <caret line="25" column="4" lean-forward="true" selection-start-line="25" selection-start-column="4" selection-end-line="25" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/analyzeSuccTRPickle.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="19" column="8" lean-forward="false" selection-start-line="19" selection-start-column="8" selection-end-line="19" selection-end-column="8" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/discoLive.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="315">
-          <caret line="460" column="48" lean-forward="false" selection-start-line="460" selection-start-column="48" selection-end-line="460" selection-end-column="48" />
+        <state relative-caret-position="209">
+          <caret line="553" column="34" lean-forward="true" selection-start-line="553" selection-start-column="34" selection-end-line="553" selection-end-column="34" />
           <folding>
             <element signature="e#0#47#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/plot-all">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="21" column="24" lean-forward="true" selection-start-line="21" selection-start-column="24" selection-end-line="21" selection-end-column="24" />
+          <folding />
         </state>
       </provider>
     </entry>

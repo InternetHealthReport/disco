@@ -1,28 +1,63 @@
-set term pdf
-set output "all-burst.pdf"
-
+set term postscript eps enhanced color font 'Helvetica,19' size 8,6
+set output "all-burst.eps"
 set timefmt "%s"
 set xdata time
 set grid xtics
-set y2label "Burst level"
-set lmargin 4
+set ylabel "Burst level"
+#set lmargin 14
+#set tmargin 1
 unset key
 # full day
-set xrange ["1465257600":"1465344000"]
+#set xrange ["1465257600":"1465344000"]
+set xrange ["1465286400":"1465329600"]
 #set format x ""
 
-set multiplot layout 2,1
+set multiplot layout 5,1 margins 1,0.98,0.1,0.98
 
-### 2. probe level (absolute)
-set y2label "connected probe count"
-#plot "nl-level.txt" u 1:2 w steps lw 2
-set xtics font ",10"
-plot "all-probe-connected-abs.txt" u 1:2 w steps lw 2
+### 1. probe level (absolute)
+#set xtics font ",1"
+set format x "%d%b\n%H:%M"
+#set xtics textcolor rgbcolor "white"
+set ylabel "Connected\nprobe count"
+set yrange ["0":"10000"]
+set y2label "(a)" font ",16" rotate by 1
+plot "all-probe-connected-abs.txt" u 1:2 w steps lw 5 lt rgb "#008080"
+set yrange ["8900":"9100"]
+
+### 2. probe level (zoom)
+set tmargin 1
+set ylabel "Connected\nprobe count\n(zoomed)"
+#set xtics font ",17"
+#set xlabel "(b)" font ",16"
+#set format x "%d%b\n%H:%M"
+set y2label "(b)" font ",16"  rotate by 1
+plot "all-probe-connected-abs.txt" u 1:2 w steps lw 5 lt rgb "#008080"
 
 ### 3. burst signal
+#set format x "%d%b\n%H:%M"
+#set xlabel "Time" font ",17"
+#set xlabel "(c)" font ",16"
+set ylabel "Burst level"
+#set xtics font ",17"
+set yrange ["0":"15"]
+set y2label "(c)" font ",16" rotate by 1
+plot "stepped-burst-all.txt" u 1:2 w steps lw 5 lt rgb "#0000FF"
+unset yrange
+
+###4. Kenya Raw data probe-connected-abs.txt
+set ylabel "Connected\nprobe count\n(zoomed)"
+#set xlabel "(d)" font ",16"
+set y2label "(d)" font ",16" rotate by 1
+plot "probe-connected-abs.txt" u 1:2 w steps lw 5 lt rgb "#008080"
+
+### 5. burst signal (KE)
+set xtics textcolor rgbcolor "black"
+set xtics font ",17"
 set format x "%d%b\n%H:%M"
-set xlabel "Time" font ",10"
-set y2label "Burst level"
-set xtics font ",10"
-plot "stepped-burst-all.txt" u 1:2 w steps lw 2
+set yrange ["0":"15"]
+#set xlabel "(e)" font ",16"
+set y2label "(e)" font ",16" rotate by 1
+set ylabel "Burst level\n(Kenya\nsub-stream)"
+#set xtics font ",17"
+plot "stepped-burst.txt" u 1:2 w steps lw 5 lt rgb "#0000FF"
 

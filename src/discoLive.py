@@ -550,8 +550,8 @@ def workerThread(threadType):
                     filesToEmail.append('figures/'+threadType+'Bursts_'+dataDate+'_'+str(key)+'_'+str(plotter.suffix)+'.'+str(plotter.outputFormat))
 
                 ##Temp code
-                if str(key)=='All':
-                    print(bursts)
+                #if str(key)=='All':
+                #    print(bursts)
                     #print(tsClean)
 
                 burstsDict={}

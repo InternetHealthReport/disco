@@ -1,5 +1,5 @@
-set term pdf
-set output "burst.pdf"
+set term postscript eps enhanced color font 'Helvetica,10'
+set output "burst.eps"
 
 set timefmt "%s"
 set xdata time
