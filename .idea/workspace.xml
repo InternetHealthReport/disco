@@ -37,8 +37,8 @@
       <file leaf-file-name="discoLive.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/discoLive.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="479">
-              <caret line="465" column="30" lean-forward="true" selection-start-line="465" selection-start-column="30" selection-end-line="465" selection-end-column="30" />
+            <state relative-caret-position="464">
+              <caret line="650" column="13" lean-forward="false" selection-start-line="650" selection-start-column="13" selection-end-line="650" selection-end-column="13" />
               <folding>
                 <element signature="e#0#47#0" expanded="true" />
               </folding>
@@ -708,7 +708,14 @@
       <option name="project" value="LOCAL" />
       <updated>1486107663285</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="Small fix">
+      <created>1486107842856</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1486107842856</updated>
+    </task>
+    <option name="localTasksCounter" value="31" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -1168,8 +1175,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/discoLive.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="479">
-          <caret line="465" column="30" lean-forward="true" selection-start-line="465" selection-start-column="30" selection-end-line="465" selection-end-column="30" />
+        <state relative-caret-position="464">
+          <caret line="650" column="13" lean-forward="false" selection-start-line="650" selection-start-column="13" selection-end-line="650" selection-end-column="13" />
           <folding>
             <element signature="e#0#47#0" expanded="true" />
           </folding>
