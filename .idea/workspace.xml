@@ -3,16 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="b44adc08-c0d1-4577-abea-0b408e0e8ab6" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/pybursts" afterPath="$PROJECT_DIR$/pybursts" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/all-burst.pdf" afterPath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/all-burst.pdf" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/burst.pdf" afterPath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/burst.pdf" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/analyzeSuccTRPickle.py" afterPath="$PROJECT_DIR$/src/analyzeSuccTRPickle.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/plot-all" afterPath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/plot-all" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/plot-burst" afterPath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/plot-burst" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/probe-connected-abs.txt" afterPath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/probe-connected-abs.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/stepped-burst.txt" afterPath="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/stepped-burst.txt" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/discoLive.py" afterPath="$PROJECT_DIR$/src/discoLive.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/linkOutageEvalTable.py" afterPath="$PROJECT_DIR$/src/linkOutageEvalTable.py" />
     </list>
     <ignored path="disco.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -42,11 +34,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="discoLive.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="discoLive.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/discoLive.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="209">
-              <caret line="553" column="34" lean-forward="true" selection-start-line="553" selection-start-column="34" selection-end-line="553" selection-end-column="34" />
+            <state relative-caret-position="524">
+              <caret line="458" column="25" lean-forward="false" selection-start-line="458" selection-start-column="25" selection-end-line="458" selection-end-column="25" />
               <folding>
                 <element signature="e#0#47#0" expanded="true" />
               </folding>
@@ -54,11 +46,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="plot-all" pinned="false" current-in-tab="true">
+      <file leaf-file-name="plot-all" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/plot-all">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="315">
-              <caret line="21" column="24" lean-forward="true" selection-start-line="21" selection-start-column="24" selection-end-line="21" selection-end-column="24" />
+            <state relative-caret-position="566">
+              <caret line="49" column="34" lean-forward="false" selection-start-line="49" selection-start-column="34" selection-end-line="49" selection-end-column="34" />
               <folding />
             </state>
           </provider>
@@ -80,7 +72,7 @@
         <entry file="file://$PROJECT_DIR$/src/linkOutageEvalTable.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="330">
-              <caret line="25" column="4" lean-forward="true" selection-start-line="25" selection-start-column="4" selection-end-line="25" selection-end-column="4" />
+              <caret line="25" column="4" lean-forward="false" selection-start-line="25" selection-start-column="4" selection-end-line="25" selection-end-column="4" />
               <folding />
             </state>
           </provider>
@@ -127,6 +119,7 @@
       <find>durationsOfDeltaStart</find>
       <find>print</find>
       <find>tmar</find>
+      <find>itr2</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -184,8 +177,8 @@
         <option value="$PROJECT_DIR$/src/plotFunctions.py" />
         <option value="$PROJECT_DIR$/src/linkOutageEvalTable.py" />
         <option value="$PROJECT_DIR$/src/analyzeSuccTRPickle.py" />
-        <option value="$PROJECT_DIR$/src/discoLive.py" />
         <option value="$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/plot-all" />
+        <option value="$PROJECT_DIR$/src/discoLive.py" />
       </list>
     </option>
   </component>
@@ -680,7 +673,21 @@
       <option name="project" value="LOCAL" />
       <updated>1485233167045</updated>
     </task>
-    <option name="localTasksCounter" value="25" />
+    <task id="LOCAL-00025" summary="Small fix">
+      <created>1486094703771</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1486094703771</updated>
+    </task>
+    <task id="LOCAL-00026" summary="Small fix">
+      <created>1486107207333</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1486107207333</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -690,7 +697,7 @@
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.31488097" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32914045" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -1083,7 +1090,7 @@
         <state relative-caret-position="56">
           <caret line="143" column="42" lean-forward="false" selection-start-line="143" selection-start-column="42" selection-end-line="143" selection-end-column="42" />
           <folding>
-            <element signature="e#0#46#0" expanded="true" />
+            <element signature="e#0#46#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1115,7 +1122,7 @@
     <entry file="file://$PROJECT_DIR$/src/linkOutageEvalTable.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="330">
-          <caret line="25" column="4" lean-forward="true" selection-start-line="25" selection-start-column="4" selection-end-line="25" selection-end-column="4" />
+          <caret line="25" column="4" lean-forward="false" selection-start-line="25" selection-start-column="4" selection-end-line="25" selection-end-column="4" />
           <folding />
         </state>
       </provider>
@@ -1130,21 +1137,21 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/discoLive.py">
+    <entry file="file://$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/plot-all">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="209">
-          <caret line="553" column="34" lean-forward="true" selection-start-line="553" selection-start-column="34" selection-end-line="553" selection-end-column="34" />
-          <folding>
-            <element signature="e#0#47#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="566">
+          <caret line="49" column="34" lean-forward="false" selection-start-line="49" selection-start-column="34" selection-end-line="49" selection-end-column="34" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/comparisonWithCountMetric/kenya-outage/plot-all">
+    <entry file="file://$PROJECT_DIR$/src/discoLive.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="315">
-          <caret line="21" column="24" lean-forward="true" selection-start-line="21" selection-start-column="24" selection-end-line="21" selection-end-column="24" />
-          <folding />
+        <state relative-caret-position="524">
+          <caret line="458" column="25" lean-forward="false" selection-start-line="458" selection-start-column="25" selection-end-line="458" selection-end-column="25" />
+          <folding>
+            <element signature="e#0#47#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

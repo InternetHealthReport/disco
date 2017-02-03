@@ -456,6 +456,7 @@ def workerThread(threadType):
             exit(1)
         itr2=itemsToRead
         if itemsToRead>1:
+            print('Here 1')
             while itemsToRead:
                 if threadType=='con':
                     event=dataQueueConnect.get()
@@ -644,6 +645,7 @@ def workerThread(threadType):
                 else:
                     dataQueueDisconnect.task_done()
         else:
+            print('Here 2')
             if threadType == 'con':
                 dataQueueConnect.task_done()
             else:
