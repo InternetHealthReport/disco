@@ -643,6 +643,11 @@ def workerThread(threadType):
                     dataQueueConnect.task_done()
                 else:
                     dataQueueDisconnect.task_done()
+        else:
+            if threadType == 'con':
+                dataQueueConnect.task_done()
+            else:
+                dataQueueDisconnect.task_done()
 
 if __name__ == "__main__":
 
