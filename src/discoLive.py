@@ -650,10 +650,11 @@ def workerThread(threadType):
                     dataQueueDisconnect.task_done()
         else:
             print('Here 2')
-            if threadType == 'con':
-                dataQueueConnect.task_done()
-            else:
-                dataQueueDisconnect.task_done()
+            for iter in range(0, itr2):
+                if threadType == 'con':
+                    dataQueueConnect.task_done()
+                else:
+                    dataQueueDisconnect.task_done()
 
 if __name__ == "__main__":
 
