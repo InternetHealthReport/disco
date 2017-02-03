@@ -467,6 +467,10 @@ def workerThread(threadType):
 
             interestingEvents=getFilteredEvents(eventLocal)
             if len(interestingEvents)<1:
+                if threadType=='con':
+                    dataQueueConnect.task_done()
+                else:
+                    dataQueueDisconnect.task_done()
                 continue
             dataDate=datetime.utcfromtimestamp(interestingEvents[0]["timestamp"]).strftime('%Y%m%d')
             (plotter.year,plotter.month,plotter.day) = datetime.utcfromtimestamp(interestingEvents[0]["timestamp"]).strftime('%Y-%m-%d').split('-')
