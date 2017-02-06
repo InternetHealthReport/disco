@@ -39,6 +39,7 @@ for k,v in failurePercentages.items():
     perc=round(float(v/lengthOfData)*100,2)
     percs.append(perc)
     print(k,perc)
+    print(k, v)
 
 plotter.ecdf(dataToPlot,'percentageFailedTraceroutes',xlabel='Percentage of Failed Traceroutes',ylabel='CDF: #Outages')
 
