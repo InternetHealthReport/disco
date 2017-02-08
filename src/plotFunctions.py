@@ -413,7 +413,7 @@ class plotter():
             plt.tick_params() #labelsize=18)
             if len(xlim)>0:
                 plt.xlim(xlim)
-            plt.grid()
+            plt.grid(True)
             plt.title(titleInfo) #,fontsize=16)
             sorted=np.sort(data)
             yvals=np.arange(len(sorted))/float(len(sorted))
