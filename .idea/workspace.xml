@@ -27,8 +27,8 @@
       <file leaf-file-name="discoLive.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/discoLive.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="319">
-              <caret line="855" column="40" lean-forward="false" selection-start-line="855" selection-start-column="40" selection-end-line="855" selection-end-column="40" />
+            <state relative-caret-position="369">
+              <caret line="50" column="48" lean-forward="true" selection-start-line="50" selection-start-column="48" selection-end-line="50" selection-end-column="48" />
               <folding>
                 <element signature="e#0#47#0" expanded="true" />
               </folding>
@@ -71,8 +71,8 @@
       <file leaf-file-name="mongodb.conf" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/conf/mongodb.conf">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="15">
-              <caret line="1" column="19" lean-forward="false" selection-start-line="1" selection-start-column="19" selection-end-line="1" selection-end-column="19" />
+            <state relative-caret-position="0">
+              <caret line="0" column="8" lean-forward="false" selection-start-line="0" selection-start-column="1" selection-end-line="0" selection-end-column="8" />
               <folding />
             </state>
           </provider>
@@ -90,7 +90,6 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>getDayToProbesMapFromAggResults</find>
-      <find>mongo</find>
       <find>probePrefixes24</find>
       <find>toPlotRatioFaultyIPsPerProbe</find>
       <find>outageInfo</find>
@@ -111,6 +110,8 @@
       <find>output</find>
       <find>outp</find>
       <find>toMongoDB</find>
+      <find>dataFile</find>
+      <find>mongo</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -687,7 +688,14 @@
       <option name="project" value="LOCAL" />
       <updated>1496523597844</updated>
     </task>
-    <option name="localTasksCounter" value="37" />
+    <task id="LOCAL-00037" summary="Stream name change">
+      <created>1496523667022</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1496523667022</updated>
+    </task>
+    <option name="localTasksCounter" value="38" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -1123,22 +1131,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/conf/discoLive.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="435">
-          <caret line="29" column="13" lean-forward="false" selection-start-line="29" selection-start-column="13" selection-end-line="29" selection-end-column="13" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/conf/mongodb.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="1" column="19" lean-forward="false" selection-start-line="1" selection-start-column="19" selection-end-line="1" selection-end-column="19" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/tracerouteProcessor.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="15">
@@ -1157,10 +1149,26 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/conf/mongodb.conf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="8" lean-forward="false" selection-start-line="0" selection-start-column="1" selection-end-line="0" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/conf/discoLive.conf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="435">
+          <caret line="29" column="13" lean-forward="false" selection-start-line="29" selection-start-column="13" selection-end-line="29" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/discoLive.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="319">
-          <caret line="855" column="40" lean-forward="false" selection-start-line="855" selection-start-column="40" selection-end-line="855" selection-end-column="40" />
+        <state relative-caret-position="369">
+          <caret line="50" column="48" lean-forward="true" selection-start-line="50" selection-start-column="48" selection-end-line="50" selection-end-column="48" />
           <folding>
             <element signature="e#0#47#0" expanded="true" />
           </folding>

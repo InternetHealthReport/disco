@@ -48,7 +48,7 @@ class outputWriter():
             exit(1)
 
         try:
-            DBNAME = eval(config['MONGODB']['dbname'])
+            DBNAME = config['MONGODB']['dbname']
         except:
             print('Error in reading mongodb.conf. Check parameters.')
             exit(1)
