@@ -27,8 +27,8 @@
       <file leaf-file-name="discoLive.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/discoLive.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="424">
-              <caret line="862" column="68" lean-forward="false" selection-start-line="862" selection-start-column="68" selection-end-line="862" selection-end-column="68" />
+            <state relative-caret-position="319">
+              <caret line="855" column="40" lean-forward="false" selection-start-line="855" selection-start-column="40" selection-end-line="855" selection-end-column="40" />
               <folding>
                 <element signature="e#0#47#0" expanded="true" />
               </folding>
@@ -680,7 +680,14 @@
       <option name="project" value="LOCAL" />
       <updated>1496521956016</updated>
     </task>
-    <option name="localTasksCounter" value="36" />
+    <task id="LOCAL-00036" summary="Stream name change">
+      <created>1496523597844</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1496523597844</updated>
+    </task>
+    <option name="localTasksCounter" value="37" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -762,7 +769,8 @@
     <MESSAGE value="Relocation of modules" />
     <MESSAGE value="Updates to analysis with Trinocular" />
     <MESSAGE value="Small fix" />
-    <option name="LAST_COMMIT_MESSAGE" value="Small fix" />
+    <MESSAGE value="Stream name change" />
+    <option name="LAST_COMMIT_MESSAGE" value="Stream name change" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1151,8 +1159,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/discoLive.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="424">
-          <caret line="862" column="68" lean-forward="false" selection-start-line="862" selection-start-column="68" selection-end-line="862" selection-end-column="68" />
+        <state relative-caret-position="319">
+          <caret line="855" column="40" lean-forward="false" selection-start-line="855" selection-start-column="40" selection-end-line="855" selection-end-column="40" />
           <folding>
             <element signature="e#0#47#0" expanded="true" />
           </folding>

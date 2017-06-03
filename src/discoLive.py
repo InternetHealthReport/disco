@@ -853,14 +853,14 @@ if __name__ == "__main__":
             atlas_stream.connect()
 
             # Probe's connection status results
-            channel = "probe"
+            channel = "atlas_probestatus"
 
             atlas_stream.bind_channel(channel, on_result_response)
             #1409132340
             #1409137200
             #stream_parameters = {"startTime":1409132240,"endTime":1409137200,"speed":5}
             stream_parameters = {"enrichProbes": True}
-            atlas_stream.start_stream(stream_type="atlas_probestatus", **stream_parameters)
+            atlas_stream.start_stream(stream_type="probestatus", **stream_parameters)
 
             atlas_stream.timeout()
             dataQueueDisconnect.join()
