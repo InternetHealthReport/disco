@@ -1,37 +1,38 @@
-set term pdf
-set output "burst.pdf"
+set term postscript eps enhanced color font 'Helvetica,19' size 5,2
+set output "twcburst.eps"
 
 set timefmt "%s"
 set xdata time
 set grid xtics
-set y2label "Burst level"
-set lmargin 4
-unset key
+set lmargin 14
+set tmargin 0.6
+set bmargin 1.1
+set key right bottom
+
+
 # full day
-set xrange ["1409097600":"1409184000"]
-#set format x ""
-
-set title "RIPE Atlas probes in TWC connected to RIPE Atlas infrastucture\n(only probes with disconnects shown)"
-
+#set xrange ["1409097600":"1409183999"]
+set xrange ["1409121000":"1409148000"]
+set format x ""
 set multiplot layout 2,1
 
-#unset ytics
-set y2label "Probes" font ",10"
-unset key 
-###TODO### plot "NL.log" u 1:2:($3-$1):(0) w vectors nohead lc rgb "#4682b4"
+###4. TWC Raw data probe-connected-abs.txt
+set ylabel "Connected\nprobe count"
+#set xlabel "(a)" font ",16"
+set y2label "(a)" font ",18" rotate by 1
+#set ytics (14,16,18,20,22)
+plot "probe-connected-abs.txt" u 1:2 w steps lw 5 lt rgb "#008080" title "TWC probes"
 
-unset title
-
-### 2. probe level (absolute)
-set y2label "connected probe count"
-#plot "nl-level.txt" u 1:2 w steps lw 2
-set xtics font ",10"
-plot "probe-connected-abs.txt" u 1:2 w steps lw 2
-
-### 3. burst signal
+set tmargin 0.05
+set bmargin 2.45
+### 2. burst signal (TWC)
+set xtics textcolor rgbcolor "black"
+set xtics font ",17"
 set format x "%d%b\n%H:%M"
-set xlabel "Time" font ",10"
-set y2label "Burst level"
-set xtics font ",10"
-plot "stepped-burst.txt" u 1:2 w steps lw 2
-
+set yrange ["0":"20"]
+set ytics (6,10,14,18,22)
+#set xlabel "(b)" font ",16"
+set y2label "(b)" font ",18" rotate by 1
+set ylabel "Burst level"
+#set xtics font ",17"
+plot "stepped-burst.txt" u 1:2 w steps lw 5 lt rgb "#0000FF" title "TWC probes"

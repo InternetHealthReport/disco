@@ -19,6 +19,7 @@ from plotFunctions import plotter
 from probeEnrichInfo import probeEnrichInfo
 from emailWithAttachment import *
 #from tracerouteProcessor import tracerouteProcessor
+from mongoClient import mongoClient
 from pprint import PrettyPrinter
 from datetime import datetime
 import gzip
@@ -36,6 +37,24 @@ class outputWriter():
         if os.path.exists(self.resultfilename):
             os.remove(self.resultfilename)
 
+        # Read MongoDB config
+        configfile = 'conf/mongodb.conf'
+        config = configparser.ConfigParser()
+        try:
+            config.sections()
+            config.read(configfile)
+        except:
+            logging.error('Missing config: ' + configfile)
+            exit(1)
+
+        try:
+            DBNAME = eval(config['MONGODB']['dbname'])
+        except:
+            print('Error in reading mongodb.conf. Check parameters.')
+            exit(1)
+
+        self.mongodb = mongoClient(DBNAME)
+
     def write(self,val,delimiter="|"):
         self.lock.acquire()
         try:
@@ -46,6 +65,12 @@ class outputWriter():
             traceback.print_exc()
         finally:
             self.lock.release()
+
+    def toMongoDB(self,val):
+        (id, startMedian, endMedian, durationMedian, numProbesInUnit, probeIds)=val
+        results={}
+        results[id]={'start':startMedian,'end':endMedian,'duration':durationMedian,'numberOfProbesInUnit':numProbesInUnit,'pids':probeIds}
+        self.mongodb.insertLiveResults(self.resultfilename,results)
 
 
 def on_result_response(*args):
@@ -428,6 +453,7 @@ def getPerEventStats(burstyProbeDurations,numProbesInUnit,output):
         durationMedian=np.median(np.array(durations))
         burstEventInfo.append([id,startMedian,endMedian,durationMedian,numProbesInUnit,probeIds])
         output.write([id,startMedian,endMedian,durationMedian,numProbesInUnit,probeIds])
+        output.toMongoDB([id, startMedian, endMedian, durationMedian, numProbesInUnit, probeIds])
     return burstEventInfo
 
 def workerThread(threadType):
@@ -712,8 +738,6 @@ if __name__ == "__main__":
         probeInfo.fastLoadInfo()
     else:
         probeInfo.loadInfoFromFiles()
-
-
 
     #Read filters and prepare a set of valid probe IDs
     filterDict=eval(config['FILTERS']['filterDict'])

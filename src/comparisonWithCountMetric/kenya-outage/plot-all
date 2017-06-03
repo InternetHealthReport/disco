@@ -7,7 +7,8 @@ set grid xtics
 set lmargin 14
 set tmargin 0.6
 set bmargin 1.1
-set key right bottom
+#set key right bottom
+set key at graph 0.97, 0.2
 # full day
 #set xrange ["1465257600":"1465344000"]
 set xrange ["1465286400":"1465329600"]
@@ -22,7 +23,7 @@ set xtics textcolor rgbcolor "white"
 set ylabel "Connected\nprobe count"
 set yrange ["0":"10000"]
 set y2label "(a)" font ",16" rotate by 1
-plot "all-probe-connected-abs.txt" u 1:2 w steps lw 5 lt rgb "#008080" title "All raw data"
+plot "all-probe-connected-abs.txt" u 1:2 w steps lw 5 lt rgb "#008080" title "All probes"
 set yrange ["8900":"9100"]
 
 set tmargin 0.1
@@ -32,7 +33,7 @@ set ylabel "Connected\nprobe count\n(zoomed)"
 #set xlabel "(b)" font ",16"
 #set format x "%d%b\n%H:%M"
 set y2label "(b)" font ",16"  rotate by 1
-plot "all-probe-connected-abs.txt" u 1:2 w steps lw 5 lt rgb "#008080" title "All raw data"
+plot "all-probe-connected-abs.txt" u 1:2 w steps lw 5 lt rgb "#008080" title "All probes"
 
 ### 3. burst signal
 #set format x "%d%b\n%H:%M"
@@ -43,7 +44,7 @@ set ylabel "Burst level"
 set yrange ["0":"15"]
 set ytics (2,6,10,14)
 set y2label "(c)" font ",16" rotate by 1
-plot "stepped-burst-all.txt" u 1:2 w steps lw 5 lt rgb "#0000FF" title "All sub-streams"
+plot "stepped-burst-all.txt" u 1:2 w steps lw 5 lt rgb "#0000FF" title "All probes"
 unset yrange
 
 ###4. Kenya Raw data probe-connected-abs.txt
@@ -51,8 +52,9 @@ set ylabel "Connected\nprobe count"
 #set xlabel "(d)" font ",16"
 set y2label "(d)" font ",16" rotate by 1
 set ytics (14,16,18,20,22)
-plot "probe-connected-abs.txt" u 1:2 w steps lw 5 lt rgb "#008080" title "Kenya raw data"
+plot "probe-connected-abs.txt" u 1:2 w steps lw 5 lt rgb "#008080" title "Kenya probes"
 
+set key at graph 0.97, 0.25
 set tmargin 0.05
 set bmargin 2.45
 ### 5. burst signal (KE)
@@ -65,4 +67,4 @@ set ytics (2,6,10,14)
 set y2label "(e)" font ",16" rotate by 1
 set ylabel "Burst level"
 #set xtics font ",17"
-plot "stepped-burst.txt" u 1:2 w steps lw 5 lt rgb "#0000FF" title "Kenya sub-stream"
+plot "stepped-burst.txt" u 1:2 w steps lw 5 lt rgb "#0000FF" title "Kenya probes"

@@ -160,6 +160,6 @@ if __name__ == "__main__":
 
     plotter.suffix='Both'
     #print(toPlotRatioFaultyIPsPerProbe)
-    plotter.ecdf(toPlotRatioFaultyIPsPerProbe,'ratioFaultyIPsPerProbe',xlabel='#Faulty IPs to #Probes',ylabel='CDF #Outages',xlim=[0,1])
+    plotter.ecdf(toPlotRatioFaultyIPsPerProbe,'ratioFaultyIPsPerProbe',xlabel='#Faulty IPs / #Probes',ylabel='CDF #Outages',xlim=[0,1])
     #print(toPlotRatioFaultyIPsPerProbe)
     #print(numberOfTraceroutes,numberOfFailedTraceroutes,numberOfSuccessfulTraceroutes,numberOfTraceroutesWithValidNextIP)
