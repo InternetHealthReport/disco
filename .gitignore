@@ -101,5 +101,10 @@ ENV/
 *.backup
 
 # Disco
+data/
+figures/
+outageEval/
 results/
+topo/
+logs/
 run.stdout
