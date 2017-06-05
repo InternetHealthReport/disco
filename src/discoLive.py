@@ -69,7 +69,7 @@ class outputWriter():
     def toMongoDB(self,val):
         (id, startMedian, endMedian, durationMedian, numProbesInUnit, probeIds)=val
         results={}
-        results[id]={'start':startMedian,'end':endMedian,'duration':durationMedian,'numberOfProbesInUnit':numProbesInUnit,'pids':probeIds}
+        results[str(id)]={'start':startMedian,'end':endMedian,'duration':durationMedian,'numberOfProbesInUnit':numProbesInUnit,'pids':probeIds}
         self.mongodb.insertLiveResults(self.resultfilename,results)
 
 
