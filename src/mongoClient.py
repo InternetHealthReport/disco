@@ -141,7 +141,7 @@ class mongoClient():
         return toReturnCollections
 
     def insertLiveResults(self,collection,results):
-        self.db[collection].insert_many(results)
+        self.db[collection].insert(results)
 
 if __name__ == "__main__":
     configfile = 'conf/mongodb.conf'
