@@ -102,3 +102,4 @@ ENV/
 
 # Disco
 results/
+run.stdout
