@@ -70,7 +70,8 @@ class outputWriter():
         (id, startMedian, endMedian, durationMedian, numProbesInUnit, probeIds)=val
         results={}
         results[str(id)]={'start':startMedian,'end':endMedian,'duration':durationMedian,'numberOfProbesInUnit':numProbesInUnit,'pids':probeIds}
-        self.mongodb.insertLiveResults(self.resultfilename,results)
+        collectionName=self.resultfilename.split('.')[0]
+        self.mongodb.insertLiveResults(collectionName,results)
 
 
 def on_result_response(*args):
