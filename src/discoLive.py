@@ -13,6 +13,7 @@ from contextlib import closing
 import Queue
 import numpy as np
 import pybursts
+from getLiveData import *
 from ripe.atlas.cousteau import AtlasStream
 from choropleth import plotChoropleth
 from plotFunctions import plotter
@@ -74,7 +75,7 @@ class outputWriter():
         self.mongodb.insertLiveResults(collectionName,results)
 
 
-def on_result_response(*args):
+def on_result_responseD(*args):
     """
     Function that will be called every time we receive a new result.
     Args is a tuple, so you should use args[0] to access the real message.
@@ -879,6 +880,9 @@ if __name__ == "__main__":
             logging.error('Unexpected Event. Quiting.')
             atlas_stream.disconnect()
         '''
+        getLive()
+        dataQueueDisconnect.join()
+        dataQueueConnect.join()
     else:
         try:
             eventFiles=[]
