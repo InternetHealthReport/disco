@@ -847,8 +847,9 @@ if __name__ == "__main__":
             WAIT_TIME=60
         dataTimeRangeInSeconds=int(WAIT_TIME)
         logging.info('Reading Online with wait time {0} seconds.'.format(WAIT_TIME))
+        '''
         try:
-
+            
             #Read Stream
             atlas_stream = AtlasStream()
             atlas_stream.connect()
@@ -872,10 +873,12 @@ if __name__ == "__main__":
 
             # Shut down everything
             atlas_stream.disconnect()
+            
         except:
             print('Unexpected Event. Quiting.')
             logging.error('Unexpected Event. Quiting.')
             atlas_stream.disconnect()
+        '''
     else:
         try:
             eventFiles=[]
