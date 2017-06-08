@@ -1,6 +1,7 @@
 import numpy as np
 
 inFile = "disco_trr.txt"
+# inFile = "disco_trr2015.txt"
 
 thresh = 0.5
 
@@ -12,6 +13,11 @@ trino_calc=np.array([0.07,0.03,0.92,0.22,0.06,1.0,0.0,0.03,0.1,0.1,0.09,0.06,0.5
 trino_calc = trino_calc[trino_ref!=0]
 # number of outages found by trinocular but not disco
 fn = np.sum(trino_calc<thresh)
+
+print "Trinocular:"
+print "number of alarms: %s" % len(trino_calc)
+print "TP: %s" % np.sum(trino_calc<thresh)
+print "FP: %s" % np.sum(trino_calc>=thresh)
 
 nor = []
 out = []
@@ -30,6 +36,7 @@ tp = np.sum(out<thresh)
 fp = np.sum(out>=thresh)
 # print out[out>=thresh]
 
+print "\nDisco:"
 print "number of alarms: %s" % len(out)
 print "TP: %s" % tp
 print "FP: %s" % fp
