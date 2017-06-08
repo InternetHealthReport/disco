@@ -122,7 +122,6 @@ def getLive(allmsm=[7000]):
             atlas_stream.timeout(seconds=3600-(datetime.datetime.now()-starttime).seconds)
             # Shut down everything
             atlas_stream.disconnect()
-            break
 
         except ConnectionError as e:
             now = datetime.datetime.utcnow()
