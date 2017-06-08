@@ -69,8 +69,8 @@ class outputWriter():
     def toMongoDB(self,val):
         (id, startMedian, endMedian, durationMedian, numProbesInUnit, probeIds)=val
         results={}
-        results[str(id)]={'start':startMedian,'end':endMedian,'duration':durationMedian,'numberOfProbesInUnit':numProbesInUnit,'pids':probeIds}
-        collectionName=self.resultfilename.split('/')[1].split('.')[0]
+        results[str(id)]={'start':startMedian,'end':endMedian,'duration':durationMedian,'numberOfProbesInUnit':numProbesInUnit,'probeInfo':probeIds}
+        collectionName=self.resultfilename.split('/')[1].split('.')[0].split('_')[2]#Gives the stream name
         self.mongodb.insertLiveResults(collectionName,results)
 
 """Methods for atlas stream"""
@@ -92,7 +92,7 @@ def on_result_response(*args):
     # print args[0]
     item = args[0]
     event = eval(str(item))
-    # print(event)
+    print(event)
     dataList.append(event)
     if DETECT_DISCO_BURST:
         if event["event"] == "disconnect":
