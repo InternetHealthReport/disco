@@ -68,13 +68,42 @@ class outputWriter():
 
     def toMongoDB(self,val):
         (id, startMedian, endMedian, durationMedian, numProbesInUnit, probeIds)=val
-        results={}
-        results[str(id)]={'start':startMedian,'end':endMedian,'duration':durationMedian,'numberOfProbesInUnit':numProbesInUnit,'probeInfo':probeIds}
-        collectionName=self.resultfilename.split('/')[1].split('.')[0].split('_')[2]#Gives the stream name
+        #results={}
+        streamName=self.resultfilename.split('/')[1].split('.')[0].split('_')[2]#Gives the stream name
+        streamType=None
+        try:
+            asnum=int(streamName)
+            streamType='asn'
+        except:
+            if '-' in streamName:
+                streamType = 'geo'
+            else:
+                streamType = 'country'
+
+        # Keep track of all conf settings
+        confParams={'probeInfoDataYear':dataYear,'burstLevelThreshold':BURST_THRESHOLD,\
+                    'minimumSignalLength':SIGNAL_LENGTH,'minimumProbesInUnit':MIN_PROBES,\
+                    'probeClusterDistanceThreshold':probeClusterDistanceThreshold}
+        results={'streamName':streamName,'streamType':streamType,'id':id,'start':startMedian,'end':endMedian,\
+                 'duration':durationMedian,'numberOfProbesInUnit':numProbesInUnit,'probeInfo':probeIds \
+                 'confParams':confParams}
+        collectionName='streamResults'
         self.mongodb.insertLiveResults(collectionName,results)
 
-"""Methods for atlas stream"""
 
+def pushProbeInfoToDB(probeInfo):
+    mongodbObj = mongoClient(DBNAME)
+    collectionName='streamInfo-'+dataYear
+    listOfCollections=self.mongodb.getCollections(collectionName)
+    if not collectionName in listOfCollections:
+        allASes=probeInfo.asnToProbeIDDict.keys()
+        allPIDs=probeInfo.probeIDToASNDict.keys()
+        allCountries=probeInfo.countryToProbeIDDict.keys()
+        streamInfoData={'ases':allASes,'countries':allCountries,'probeIDs':allPIDs}
+        mongodbObj.insertLiveResults(collectionName, streamInfoData)
+
+
+"""Methods for atlas stream"""
 
 class ConnectionError(Exception):
     def __init__(self, value):
@@ -117,7 +146,8 @@ def on_connect(*args):
 def on_reconnect(*args):
     #print "got in on_reconnect"
     #print args
-    raise ConnectionError("Reconnection")
+    #raise ConnectionError("Reconnection")
+    return
 
 
 def on_close(*args):
@@ -129,7 +159,8 @@ def on_close(*args):
 def on_disconnect(*args):
     #print "got in on_disconnect"
     #print args
-    raise ConnectionError("Disconnection")
+    #raise ConnectionError("Disconnection")
+    return
 
 
 def on_connect_error(*args):
@@ -159,7 +190,7 @@ def getLive(allmsm=[7000]):
     lastDownload = None
     lastConnection = None
 
-    while (datetime.now() - starttime).seconds < 3600:
+    while True:
         try:
             lastConnection = datetime.now()
             atlas_stream = AtlasStream()
@@ -183,11 +214,12 @@ def getLive(allmsm=[7000]):
                 stream_parameters = {"buffering": True, "equalsTo": {"af": 4}, "msm": msm}
                 atlas_stream.start_stream(stream_type="result", **stream_parameters)
 
-            # Run for 1 hour
-            # print "start stream for msm ids: %s" % allmsm
-            atlas_stream.timeout(seconds=3600 - (datetime.now() - starttime).seconds)
-            # Shut down everything
+            # Run for WAIT_TIME
+            atlas_stream.timeout(WAIT_TIME)
+            # Shut down everything, stream might timeout so we disconnect and will reconnect
             atlas_stream.disconnect()
+            # Wait a bit if the connection was made less than a minute ago
+            time.sleep(60)
 
         except ConnectionError as e:
             now = datetime.utcnow()
@@ -195,11 +227,7 @@ def getLive(allmsm=[7000]):
             # print "last download: %s" % lastDownload
             # print "last connection: %s" % lastConnection
             atlas_stream.disconnect()
-
-            # Wait a bit if the connection was made less than a minute ago
-            if lastConnection + datetime.timedelta(60) > now:
-                time.sleep(60)
-                # print "Go back to the loop and reconnect"
+            time.sleep(60)
 
         except Exception as e:
             save_note = "Exception dump: %s : %s.\nCommand: %s" % (type(e).__name__, e, sys.argv)
@@ -869,6 +897,7 @@ if __name__ == "__main__":
     global dataQueueConnect
     #For plots
     plotter=plotter()
+
     #Probe Enrichment Info
     probeInfo=probeEnrichInfo(dataYear=dataYear)
     logging.info('Loading Probe Enrichment Info from {0}'.format(dataYear))
@@ -876,6 +905,8 @@ if __name__ == "__main__":
         probeInfo.fastLoadInfo()
     else:
         probeInfo.loadInfoFromFiles()
+    # Push probe info to DB
+    pushProbeInfoToDB(probeInfo)
 
     #Read filters and prepare a set of valid probe IDs
     filterDict=eval(config['FILTERS']['filterDict'])
