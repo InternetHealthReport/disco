@@ -85,7 +85,7 @@ class outputWriter():
                     'minimumSignalLength':SIGNAL_LENGTH,'minimumProbesInUnit':MIN_PROBES,\
                     'probeClusterDistanceThreshold':probeClusterDistanceThreshold}
         results={'streamName':streamName,'streamType':streamType,'id':id,'start':startMedian,'end':endMedian,\
-                 'duration':durationMedian,'numberOfProbesInUnit':numProbesInUnit,'probeInfo':probeIds \
+                 'duration':durationMedian,'numberOfProbesInUnit':numProbesInUnit,'probeInfo':probeIds, \
                  'confParams':confParams}
         collectionName='streamResults'
         self.mongodb.insertLiveResults(collectionName,results)
