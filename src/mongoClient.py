@@ -12,6 +12,13 @@ class mongoClient():
         self.dbatlas = self.client.atlas
         self.posts = self.db.posts
 
+    def findInCollection(self,collc,key,value):
+        returnList=[]
+        documents=self.db[collc].find({key:value})
+        for doc in documents:
+            returnList.append(doc)
+        return returnList
+
     def getTraceroutes(self,start,end,probeID,msmID):
         returnList=[]
         dayStr=datetime.utcfromtimestamp(float(start)).strftime("%Y%m%d")

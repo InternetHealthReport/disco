@@ -91,16 +91,15 @@ class outputWriter():
         self.mongodb.insertLiveResults(collectionName,results)
 
 
-def pushProbeInfoToDB(probeInfo):
-    mongodbObj = mongoClient(DBNAME)
-    collectionName='streamInfo-'+dataYear
-    listOfCollections=self.mongodb.getCollections(collectionName)
-    if not collectionName in listOfCollections:
-        allASes=probeInfo.asnToProbeIDDict.keys()
-        allPIDs=probeInfo.probeIDToASNDict.keys()
-        allCountries=probeInfo.countryToProbeIDDict.keys()
-        streamInfoData={'ases':allASes,'countries':allCountries,'probeIDs':allPIDs}
-        mongodbObj.insertLiveResults(collectionName, streamInfoData)
+    def pushProbeInfoToDB(self,probeInfo):
+        collectionName='streamInfo'
+        results=self.mongodb.findInCollection(collectionName,'year',dataYear)
+        if len(results) == 0:
+            allASes=probeInfo.asnToProbeIDDict.keys()
+            allPIDs=probeInfo.probeIDToASNDict.keys()
+            allCountries=probeInfo.countryToProbeIDDict.keys()
+            streamInfoData={'year':dataYear,'streamsMonitored':{'ases':allASes,'countries':allCountries,'probeIDs':allPIDs}}
+            self.mongodb.insertLiveResults(collectionName, streamInfoData)
 
 
 """Methods for atlas stream"""
@@ -906,7 +905,9 @@ if __name__ == "__main__":
     else:
         probeInfo.loadInfoFromFiles()
     # Push probe info to DB
-    pushProbeInfoToDB(probeInfo)
+    outputObj = outputWriter(resultfilename='results/pInfoOut.txt')
+    outputObj.pushProbeInfoToDB(probeInfo)
+    del outputObj
 
     #Read filters and prepare a set of valid probe IDs
     filterDict=eval(config['FILTERS']['filterDict'])
