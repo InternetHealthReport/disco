@@ -36,7 +36,7 @@ class outputWriter():
         self.resultfilename = resultfilename
         if os.path.exists(self.resultfilename):
             os.remove(self.resultfilename)
-
+        self.dbname=None
         # Read MongoDB config
         configfile = 'conf/mongodb.conf'
         config = configparser.ConfigParser()
@@ -48,12 +48,12 @@ class outputWriter():
             exit(1)
 
         try:
-            DBNAME = config['MONGODB']['dbname']
+            self.dbname = config['MONGODB']['dbname']
         except:
             print('Error in reading mongodb.conf. Check parameters.')
             exit(1)
 
-        self.mongodb = mongoClient(DBNAME)
+        #self.mongodb = mongoClient(DBNAME)
 
     def write(self,val,delimiter="|"):
         self.lock.acquire()
@@ -67,6 +67,7 @@ class outputWriter():
             self.lock.release()
 
     def toMongoDB(self,val):
+        mongodb = mongoClient(self.dbname)
         (id, startMedian, endMedian, durationMedian, numProbesInUnit, probeIds)=val
         #results={}
         streamName=self.resultfilename.split('/')[1].split('.')[0].split('_')[2]#Gives the stream name
@@ -88,18 +89,19 @@ class outputWriter():
                  'duration':durationMedian,'numberOfProbesInUnit':numProbesInUnit,'probeInfo':probeIds, \
                  'confParams':confParams}
         collectionName='streamResults'
-        self.mongodb.insertLiveResults(collectionName,results)
+        mongodb.insertLiveResults(collectionName,results)
 
 
     def pushProbeInfoToDB(self,probeInfo):
+        mongodb = mongoClient(self.dbname)
         collectionName='streamInfo'
-        results=self.mongodb.findInCollection(collectionName,'year',dataYear)
+        results=mongodb.findInCollection(collectionName,'year',dataYear)
         if len(results) == 0:
             allASes=probeInfo.asnToProbeIDDict.keys()
             allPIDs=probeInfo.probeIDToASNDict.keys()
             allCountries=probeInfo.countryToProbeIDDict.keys()
             streamInfoData={'year':dataYear,'streamsMonitored':{'ases':allASes,'countries':allCountries,'probeIDs':allPIDs}}
-            self.mongodb.insertLiveResults(collectionName, streamInfoData)
+            mongodb.insertLiveResults(collectionName, streamInfoData)
 
 
 """Methods for atlas stream"""
@@ -120,7 +122,6 @@ def on_result_response(*args):
     # print args[0]
     item = args[0]
     event = eval(str(item))
-    print(event)
     dataList.append(event)
     if DETECT_DISCO_BURST:
         if event["event"] == "disconnect":
@@ -1055,7 +1056,10 @@ if __name__ == "__main__":
         try:
             eventFiles=[]
             if os.path.isdir(dataFile):
-                eventFiles = [join(dataFile, f) for f in listdir(dataFile) if isfile(join(dataFile, f))]
+                #eventFiles = [join(dataFile, f) for f in listdir(dataFile) if isfile(join(dataFile, f))]
+                for dp, dn, files in os.walk(dataFile):
+                    for name in files:
+                        eventFiles.append(os.path.join(dp, name))
             else:
                 eventFiles.append(dataFile)
 
