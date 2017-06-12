@@ -91,7 +91,6 @@ class outputWriter():
         collectionName='streamResults'
         mongodb.insertLiveResults(collectionName,results)
 
-
     def pushProbeInfoToDB(self,probeInfo):
         mongodb = mongoClient(self.dbname)
         collectionName='streamInfo'
@@ -102,6 +101,10 @@ class outputWriter():
             allCountries=probeInfo.countryToProbeIDDict.keys()
             streamInfoData={'year':dataYear,'streamsMonitored':{'ases':allASes,'countries':allCountries,'probeIDs':allPIDs}}
             mongodb.insertLiveResults(collectionName, streamInfoData)
+
+    def updateCurrentTimeInDB(self,ts):
+        mongodb = mongoClient(self.dbname)
+        mongodb.updateLastSeenTime(ts)
 
 
 """Methods for atlas stream"""
@@ -639,6 +642,7 @@ def workerThread(threadType):
                 time.sleep(WAIT_TIME)
         else:
             time.sleep(WAIT_TIME)
+        lastQueuedTimestamp=int((datetime.utcnow() - datetime.utcfromtimestamp(0)).total_seconds())
         if threadType=='con':
             itemsToRead=dataQueueConnect.qsize()
         elif threadType=='dis':
@@ -846,6 +850,9 @@ def workerThread(threadType):
                     dataQueueConnect.task_done()
                 else:
                     dataQueueDisconnect.task_done()
+        outputTS = outputWriter(resultfilename='timeupdate.txt')
+        outputTS.updateCurrentTimeInDB(lastQueuedTimestamp)
+        del outputTS
 
 if __name__ == "__main__":
 
