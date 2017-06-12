@@ -12,6 +12,13 @@ class mongoClient():
         self.dbatlas = self.client.atlas
         self.posts = self.db.posts
 
+    def findInCollection(self,collc,key,value):
+        returnList=[]
+        documents=self.db[collc].find({key:value})
+        for doc in documents:
+            returnList.append(doc)
+        return returnList
+
     def getTraceroutes(self,start,end,probeID,msmID):
         returnList=[]
         dayStr=datetime.utcfromtimestamp(float(start)).strftime("%Y%m%d")
@@ -143,6 +150,10 @@ class mongoClient():
     def insertLiveResults(self,collection,results):
         self.db[collection].insert(results)
 
+    def updateLastSeenTime(self,ts):
+        entry=self.db["streamLastUpdateTime"].find()[0]
+        self.db["streamLastUpdateTime"].update({"_id":entry["_id"]},{"timestamp":ts},upsert=False)
+
 if __name__ == "__main__":
     configfile = 'conf/mongodb.conf'
     config = configparser.ConfigParser()
@@ -154,11 +165,12 @@ if __name__ == "__main__":
         exit(1)
 
     try:
-        DBNAME = eval(config['MONGODB']['dbname'])
+        DBNAME = config['MONGODB']['dbname']
     except:
         print('Error in reading conf. Check parameters.')
         exit(1)
 
     mongodb=mongoClient(DBNAME)
     #mongodb.createIndexesOnCollection('pingoutageall_20150402')
-    mongodb.createIndexesOnTraceroutes()
+    #mongodb.createIndexesOnTraceroutes()
+    mongodb.updateLastSeenTime(1497237192)
