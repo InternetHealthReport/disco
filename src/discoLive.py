@@ -99,7 +99,16 @@ class outputWriter():
             allASes=probeInfo.asnToProbeIDDict.keys()
             allPIDs=probeInfo.probeIDToASNDict.keys()
             allCountries=probeInfo.countryToProbeIDDict.keys()
-            streamInfoData={'year':dataYear,'streamsMonitored':{'ases':allASes,'countries':allCountries,'probeIDs':allPIDs}}
+            #streamInfoData={'year':dataYear,'streamsMonitored':{'ases':allASes,'countries':allCountries,'probeIDs':allPIDs}}
+            simpleASN2PID={}
+            for k,v in probeInfo.asnToProbeIDDict.items():
+                simpleASN2PID[str(k)]=list(set(v))
+            simpleCountry2PID = {}
+            for k,v in probeInfo.countryToProbeIDDict.items():
+                simpleCountry2PID[k]=list(set(v))
+            streamInfoData = {'year': dataYear,
+                              'streamsMonitored': {'ases': simpleASN2PID, \
+                                                   'countries': simpleCountry2PID}}
             mongodb.insertLiveResults(collectionName, streamInfoData)
 
     def updateCurrentTimeInDB(self,ts):
