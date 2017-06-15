@@ -168,6 +168,7 @@ if __name__ == "__main__":
                 if ongoing:
                     avglevel = 12
                     #TODO use the probeinfo here?
+
                     endDate = datetime.utcfromtimestamp(lastAnalysis["timestamp"])
                 else:
                     # compute the average burst level
