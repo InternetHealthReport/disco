@@ -133,8 +133,9 @@ if __name__ == "__main__":
                 events = list(events)
                 if len(events) == 1:
                     #update website
+                    event = events[0]
                     avgLevel = np.mean([p["state"] for p in event["probeInfo"]])
-                    cursor.execute("UPDATE ihr_disco_events SET endtime=%s, avglevel=%s, nbdiscoprobes=%s ongoing=FALSE \
+                    cursor.execute("UPDATE ihr_disco_events SET endtime=%s, avglevel=%s, nbdiscoprobes=%s, ongoing=FALSE \
                         WHERE streamtype=%s and streamname=%s and ongoing=TRUE", (datetime.utcfromtimestamp(event["end"]), avgLevel, len(event["probeInfo"]), streamtype, streamname))
 
                 elif len(events) == 0:
