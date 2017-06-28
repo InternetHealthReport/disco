@@ -165,6 +165,7 @@ if __name__ == "__main__":
 
                 # push event to the webserver
                 startDate = datetime.utcfromtimestamp(event["start"])
+                avglevel=0
                 if ongoing:
                     avglevel = 12
                     #TODO use the probeinfo here?
