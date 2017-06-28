@@ -135,13 +135,13 @@ if __name__ == "__main__":
                     #update website
                     avgLevel = np.mean([p["state"] for p in event["probeInfo"]])
                     cursor.execute("UPDATE ihr_disco_events SET endtime=%s, avglevel=%s, nbdiscoprobes=%s ongoing=FALSE \
-                        WHERE streamtype=%s and streamname=%s and start=%s and ongoing=TRUE", (datetime.utcfromtimestamp(event["end"]), avgLevel, len(event["probeInfo"]), streamtype, streamname))
+                        WHERE streamtype=%s and streamname=%s and ongoing=TRUE", (datetime.utcfromtimestamp(event["end"]), avgLevel, len(event["probeInfo"]), streamtype, streamname))
 
                 elif len(events) == 0:
                     #event still ongoing
                     #TODO use the probeinfo here? (to update avgLevel)
                     cursor.execute("UPDATE ihr_disco_events SET endtime=%s \
-                        WHERE streamtype=%s and streamname=%s and start=%s and ongoing=TRUE", (datetime.utcfromtimestamp(lastAnalysis["timestamp"])))
+                        WHERE streamtype=%s and streamname=%s and ongoing=TRUE", (datetime.utcfromtimestamp(lastAnalysis["timestamp"]), streamtype, streamname))
 
                 else:
                     logging.error("Too many on going events? %s" % events)
