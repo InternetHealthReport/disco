@@ -108,6 +108,7 @@ if __name__ == "__main__":
                   exception when unique_violation then
                     update ihr_asn set disco = TRUE where number = %s;
                 end $$;""", (asn, asNames["AS"+str(asn)], asn))
+                conn.commit()
                 
 
             for country in analyzedCountries:
