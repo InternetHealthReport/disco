@@ -13,6 +13,7 @@ import traceback
 
 from bson import objectid
 
+MINEVENTLENGTH = 900
 
 def sendMail(message):
     """
@@ -33,44 +34,6 @@ def sendMail(message):
     server.quit()
 
 
-def splitOneHourBin(cursor, streamName, streamType, discoStream,  nbTotalProbes, t1, t2):
-
-    # split things in one hour time bins
-    r = list(np.arange(t1, t2, 3600))
-    if len(r) == 0:
-        return
-
-    if t2 - r[-1] > 1800 or len(r)<2:
-        r.append(t2)
-    else:
-        r[-1] = t2
-    ts = None
-    for te in r:
-        if not ts is None:
-            cursor.execute("INSERT INTO ihr_disco_events (streamtype, streamname, starttime, endtime, avglevel, nbdiscoprobes, totalprobes, ongoing) \
-        VALUES (%s, %s, %s, %s, %s, %s, %s, FALSE) RETURNING id", (streamType, streamName, datetime.utcfromtimestamp(ts), datetime.utcfromtimestamp(te), 0, 0, nbTotalProbes))
-        ts = te
-
-
-def addZeros(cursor, streamName, streamType, discoStream, lastPush, lastAnalysis, nbTotalProbes):
-
-    if streamName in discoStream:
-        #fill the holes
-        eventList = discoStream[streamName]
-        eventList.sort(key=lambda x: x[0])
-        ts = lastPush["timestamp"]
-        for t1, t2 in eventList:
-            splitOneHourBin(cursor, streamName, streamType, discoStream, nbTotalProbes, ts, t1)
-
-            ts = t2
-
-        if ts < lastAnalysis["timestamp"]:
-            splitOneHourBin(cursor, streamName, streamType, discoStream, nbTotalProbes, ts, lastAnalysis["timestamp"])
-
-    else:
-        splitOneHourBin(cursor, streamName, streamType, discoStream, nbTotalProbes, lastPush["timestamp"], lastAnalysis["timestamp"])
-
-
 if __name__ == "__main__":
     try:
         FORMAT = '%(asctime)s %(processName)s %(message)s'
@@ -81,11 +44,12 @@ if __name__ == "__main__":
         client = pymongo.MongoClient("mongodb-iijlab",connect=True)
         db = client.disco
         lastPush = db.frontEnd.find().sort("timestamp", pymongo.DESCENDING).limit(1)[0]
-        lastAnalysis = db.streamLastUpdateTime.find().sort("timestamp", pymongo.DESCENDING).limit(1)[0]
+        lastAnalysis = db.streamResults.find().sort("insertTime", pymongo.DESCENDING).limit(1)[0]
         count = defaultdict(int)
         
-        if lastPush["timestamp"] != lastAnalysis["timestamp"]:
-            logging.info("Time window shifted: %s -> %s" % (lastPush["timestamp"], lastAnalysis["timestamp"]))
+        # Check if disco analyzed more data
+        if lastPush["timestamp"] != lastAnalysis["insertTime"]:
+            logging.info("Time window shifted: %s -> %s" % (lastPush["timestamp"], lastAnalysis["insertTime"]))
             # get a connection, if a connect cannot be made an exception will be raised here
             conn_string = "host='romain.iijlab.net' dbname='ihr'"
             conn = psycopg2.connect(conn_string)
@@ -125,30 +89,40 @@ if __name__ == "__main__":
 
             # Update results on the webserver
             # # update ongoing events
-            cursor.execute("SELECT streamtype, streamname, starttime FROM ihr_disco_events WHERE ongoing=TRUE")
+            cursor.execute("SELECT id, streamtype, streamname, starttime FROM ihr_disco_events WHERE ongoing=TRUE")
             ongoingEvents = cursor.fetchall()
 
-            for streamtype, streamname, starttime in ongoingEvents:
-                events = db.streamResults.find({"streamType": streamtype, "streamName": streamname, "start":{"$lte": lastPush["timestamp"]}, "end":{"$gte": lastPush["timestamp"]}})
+            for eventidpg, streamtype, streamname, starttime in ongoingEvents:
+                events = db.streamResults.find({"streamType": streamtype, "streamName": streamname, "insertTime":{"$gte": lastPush["timestamp"]}})
                 
                 events = list(events)
                 if len(events) == 1:
                     #update website
                     event = events[0]
-                    avgLevel = np.mean([p["state"] for p in event["probeInfo"]])
-                    cursor.execute("UPDATE ihr_disco_events SET endtime=%s, avglevel=%s, nbdiscoprobes=%s, ongoing=FALSE \
-                        WHERE streamtype=%s and streamname=%s and ongoing=TRUE", (datetime.utcfromtimestamp(event["end"]), avgLevel, len(event["probeInfo"]), streamtype, streamname))
+                    if event["duration"] < MINEVENTLENGTH:
+                        # remove event if duration < 15min
+                        cursor.execute("DELETE from ihr_disco_events WHERE streamtype=%s and streamname=%s and ongoing=TRUE", ( streamtype, streamname))
+                        cursor.execute("DELETE from ihr_disco_probes WHERE eventid=%s", ( eventidpg ))
+
+                    else:
+                        avgLevel = np.mean([p["state"] for p in event["probeInfo"]])
+                        cursor.execute("UPDATE ihr_disco_events SET endtime=%s, avglevel=%s, nbdiscoprobes=%s, ongoing=FALSE \
+                            WHERE streamtype=%s and streamname=%s and ongoing=TRUE", (datetime.utcfromtimestamp(event["end"]), avgLevel, len(event["probeInfo"]), streamtype, streamname))
+
+                        # update probe end time here..... 
+                        cursor.execute("UPDATE ihr_disco_probes SET endtime=%s WHERE event_id=%s", (datetime.utcfromtimestamp(event["end"]), eventidpg ))
 
                 elif len(events) == 0:
                     #event still ongoing
-                    #TODO use the probeinfo here? (to update avgLevel)
-                    cursor.execute("UPDATE ihr_disco_events SET endtime=%s \
-                        WHERE streamtype=%s and streamname=%s and ongoing=TRUE", (datetime.utcfromtimestamp(lastAnalysis["timestamp"]), streamtype, streamname))
+                    avgLevel = np.mean([p["state"] for p in event["probeInfo"]])
+                    cursor.execute("UPDATE ihr_disco_events SET endtime=%s, avglevel=%s\
+                        WHERE streamtype=%s and streamname=%s and ongoing=TRUE", (datetime.utcfromtimestamp(lastAnalysis["insertTime"]), avgLevel, streamtype, streamname))
 
                 else:
                     logging.error("Too many on going events? %s" % events)
 
             # Get latest results from mongo
+            logging.info("Getting new events from mongo")
             events = db.streamResults.find({"start": {"$gte": lastPush["timestamp"]}})
             discoStream = defaultdict(list) 
             for event in events:
@@ -157,7 +131,7 @@ if __name__ == "__main__":
                 if event["duration"] == -1:
                     ongoing = True
 
-                elif event["duration"] < 900:
+                elif event["duration"] < MINEVENTLENGTH:
                     #ignore events shorter than 15 minutes
                     # print("Ignoring new results: %s" % event)
                     continue
@@ -169,10 +143,8 @@ if __name__ == "__main__":
                 startDate = datetime.utcfromtimestamp(event["start"])
                 avgLevel=0
                 if ongoing:
-                    avgLevel = 12
-                    #TODO use the probeinfo here?
-
-                    endDate = datetime.utcfromtimestamp(lastAnalysis["timestamp"])
+                    avgLevel = np.mean([p["state"] for p in event["probeInfo"]])
+                    endDate = datetime.utcfromtimestamp(lastAnalysis["insertTime"])
                 else:
                     # compute the average burst level
                     avgLevel = np.mean([p["state"] for p in event["probeInfo"]])
@@ -188,23 +160,18 @@ if __name__ == "__main__":
                             VALUES (%s, %s, %s, %s, %s) ", (probe["probeID"], eventId, datetime.utcfromtimestamp(probe["start"]), datetime.utcfromtimestamp(probe["end"]), probe["state"] ))
 
                 discoStream[event["streamName"]].append( (event["start"], event["end"]) )
-                    
-            # Update all analyzed streams
-            for asn in analyzedAsn:
-                addZeros(cursor, asn, "asn", discoStream, lastPush, lastAnalysis, len(streamInfo["streamsMonitored"]["ases"][asn])) 
-
-            for country in analyzedCountries:
-                addZeros(cursor, country, "country", discoStream, lastPush, lastAnalysis, len(streamInfo["streamsMonitored"]["countries"][country])) 
 
             conn.commit()
             cursor.close()
             conn.close()
 
-            db.frontEnd.insert_one({"timestamp": lastAnalysis["timestamp"]})
+            db.frontEnd.insert_one({"timestamp": lastAnalysis["insertTime"]})
             for key, count in count.iteritems():
                 logging.info("Added %s %s events" % (count, key) )
             logging.info("Good-bye!")
 
+        else:
+            logging.info("Time window hasn't moved: lastPush = %s lastAnalysis= %s" % (lastPush["timestamp"], lastAnalysis["insertTime"]))
 
     except Exception as e: 
         tb = traceback.format_exc()
