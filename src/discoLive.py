@@ -26,6 +26,9 @@ import gzip
 import collections
 from os import listdir
 from os.path import isfile, join
+from datetime import datetime
+from ripe.atlas.cousteau import AtlasResultsRequest
+
 
 class outputWriter():
 
@@ -86,9 +89,10 @@ class outputWriter():
         confParams={'probeInfoDataYear':dataYear,'burstLevelThreshold':BURST_THRESHOLD,\
                     'minimumSignalLength':SIGNAL_LENGTH,'minimumProbesInUnit':MIN_PROBES,\
                     'probeClusterDistanceThreshold':probeClusterDistanceThreshold}
-        results={'streamName':streamName,'streamType':streamType,'id':id,'start':startMedian,'end':endMedian,\
+        insertTime = int((datetime.utcnow() - datetime.utcfromtimestamp(0)).total_seconds())
+        results={'streamName':streamName,'streamType':streamType,'start':startMedian,'end':endMedian,\
                  'duration':durationMedian,'numberOfProbesInUnit':numProbesInUnit,'probeInfo':probeIds, \
-                 'confParams':confParams}
+                 'confParams':confParams,'insertTime':insertTime}
         collectionName='streamResults'
 
         incFlag = False
@@ -97,7 +101,7 @@ class outputWriter():
         sys.stdout.flush()
         #return
         # Check if this event has an entry
-        entries = mongodb.db[collectionName].find({'start':startMedian,'streamName':streamName,'end':-1})
+        entries = mongodb.db[collectionName].find({'streamName':streamName,'duration':-1})
         if entries.count() > 0:
             if not incFlag:
                 entry = entries[0]
@@ -107,7 +111,7 @@ class outputWriter():
                 print('---------')
                 try:
                     mongodb.db[collectionName].update({"_id": entry["_id"]}, {'$set':{"end": endMedian, "duration":durationMedian ,\
-                                                                          'probeInfo':probeIds}})
+                                                                          'probeInfo':probeIds,'insertTime':insertTime}})
 
                 except:
                     traceback.print_exc()
@@ -163,6 +167,7 @@ def on_result_response(*args):
     # print args[0]
     item = args[0]
     event = eval(str(item))
+    #print(event)
     dataList.append(event)
     if DETECT_DISCO_BURST:
         if event["event"] == "disconnect":
@@ -297,6 +302,28 @@ def on_result_response(*args):
             dataQueueConnect.put(event)
 '''
 
+def getLiveRestAPI():
+    WINDOW = 1800
+    global READ_OK
+    currentTS = int((datetime.utcnow() - datetime.utcfromtimestamp(0)).total_seconds())
+    while True:
+        try:
+            kwargs = {
+                "msm_id": 7000,
+                "start": datetime.utcfromtimestamp(currentTS-WINDOW),
+                "stop": datetime.utcfromtimestamp(currentTS),
+            }
+            is_success, results = AtlasResultsRequest(**kwargs).create()
+            READ_OK = False
+            if is_success:
+                for ent in results:
+                    on_result_response(ent)
+            READ_OK = True
+            time.sleep(WINDOW)
+            currentTS += (WINDOW + 1)
+        except:
+            traceback.print_exc()
+
 def getCleanVal(val,tsClean):
     newVal=val+1
     while newVal in tsClean:
@@ -418,7 +445,6 @@ def countEventsInState(burstsDict,eventsList):
 def getFilteredEvents(eventLocal):
     interestingEvents=[]
     for event in eventLocal:
-        print(event)
         sys.stdout.flush()
         try:
             if event['prb_id'] in selectedProbeIds:
@@ -656,6 +682,8 @@ def correlateWithConnectionEvents(burstyProbeInfoDictIn):
     for pid in burstyProbeInfoDict.keys():
         for state in burstyProbeInfoDict[pid].keys():
             for burstID, tmpSList in burstyProbeInfoDict[pid][state].items():
+                if burstID in cleanBurstyProbeDurations.keys():
+                    continue
                 for tmpS in tmpSList:
                     if burstID not in burstyProbeDurationsOngoing.keys():
                         burstyProbeDurationsOngoing[burstID] = {}
@@ -689,6 +717,7 @@ def getPerEventStats(burstyProbeDurations,burstyProbeDurationsOngoing,numProbesI
         output.write([id,startMedian,endMedian,durationMedian,numProbesInUnit,probeIds])
         output.toMongoDB([id, startMedian, endMedian, durationMedian, numProbesInUnit, probeIds])
 
+
     for id,inDict in burstyProbeDurationsOngoing.items():
         startTimes=[]
         probeIds=[]
@@ -711,6 +740,7 @@ def workerThread(threadType):
     intConProbeIDDict={}
     global numSelectedProbesInUnit #Probes after user filter
     global READ_OK
+    global dataTimeRangeInSeconds
     numProbesInUnit=0
     pendingEvents=collections.deque(maxlen=100000)
 
@@ -730,11 +760,20 @@ def workerThread(threadType):
         else:
             print('Unknown thread type!')
             exit(1)
+        allPrevTS = set()
         for eves in pendingEvents:
+            allPrevTS.add(eves['timestamp'])
             eventLocal.append(eves)
         itrFromThread = itemsToRead
         itr2=itrFromThread + len(eventLocal)
-        logging.info('Events Info - Current:{0} Previous:{1} Total:{2}'.format(itemsToRead, itr2-itrFromThread, itr2))
+        prevEvs = itr2 - itrFromThread
+        try:
+            if prevEvs > 0:
+                microSecAddFactor = (lastQueuedTimestamp - min(allPrevTS)) * 100
+                dataTimeRangeInSeconds += microSecAddFactor
+        except:
+            traceback.print_exc()
+        logging.info('Events Info - Current:{0} Previous:{1} Total:{2}'.format(itemsToRead, prevEvs, itr2))
         if itr2 > 1:
             if itemsToRead>1:
                 while itemsToRead:
@@ -830,7 +869,10 @@ def workerThread(threadType):
                 if rawDataPlot:
                     titleInfoText='Total probes matching filter: {0}\nNumber of probes seen in connection events: {1}'.format(numProbesInUnit,len(probesInFilteredData))
                     plotter.plotList(tsClean,'figures/'+threadType+'RawData_'+dataDate+'_'+str(key),titleInfo=titleInfoText)
-                bursts = kleinberg(tsClean,timeRange=dataTimeRangeInSeconds,probesInUnit=numProbesInUnit)
+                balancedNumProbes = int(numProbesInUnit * (dataTimeRangeInSeconds / 8640000))
+                if balancedNumProbes == 0:
+                    balancedNumProbes = 1
+                bursts = kleinberg(tsClean,timeRange=dataTimeRangeInSeconds,probesInUnit=balancedNumProbes)
                 if burstDetectionPlot:
                     plotter.plotBursts(bursts,'figures/'+threadType+'Bursts_'+dataDate+'_'+str(key))
                     filesToEmail.append('figures/'+threadType+'Bursts_'+dataDate+'_'+str(key)+'_'+str(plotter.suffix)+'.'+str(plotter.outputFormat))
@@ -851,6 +893,7 @@ def workerThread(threadType):
                     burstsDict[q].append(tmpDict)
 
                 thresholdedEvents=applyBurstThreshold(burstsDict,eventClean)
+                logging.info('Number of thresholded events: '+str(len(thresholdedEvents))+' for key: '+str(key))
                 if len(thresholdedEvents)>0:
                     sys.stdout.flush()
                     if groupByCountryPlot:
@@ -873,10 +916,12 @@ def workerThread(threadType):
                         for everyPr in burstyProbeIDs:
                             if everyPr not in probesWhichGotConnected:
                                 probesWhichDidntConnect.append(everyPr)
+                        # Calculate new pending events
+                        newPendingEvents = []
                         for event in eventClean:
                             try:
                                 if event['prb_id'] in probesWhichDidntConnect:
-                                    pendingEvents.append(event)
+                                    newPendingEvents.append(event)
                             except:
                                 traceback.print_exc()
                                 logging.error('Error in selecting interesting events')
@@ -887,6 +932,8 @@ def workerThread(threadType):
                             if evets['prb_id'] not in probesWhichGotConnected:
                                 tmpdeququq.append(evets)
                         pendingEvents = tmpdeququq
+                        pendingEvents.extend(newPendingEvents)
+                        del tmpdeququq
 
                         output=outputWriter(resultfilename='results/discoEventMedians_'+dataDate+'_'+str(key)+'.txt')
                         if len(burstyProbeDurations)>0:
@@ -1149,7 +1196,7 @@ if __name__ == "__main__":
         if WAIT_TIME < 60:
             logging.info('Thread wait time was too low, updated to 60 seconds.')
             WAIT_TIME=60
-        dataTimeRangeInSeconds=int(WAIT_TIME)
+        dataTimeRangeInSeconds=int(WAIT_TIME)*100
         logging.info('Reading Online with wait time {0} seconds.'.format(WAIT_TIME))
         '''
         try:
@@ -1183,7 +1230,8 @@ if __name__ == "__main__":
             logging.error('Unexpected Event. Quiting.')
             atlas_stream.disconnect()
         '''
-        getLive()
+        #getLive()
+        getLiveRestAPI()
         dataQueueDisconnect.join()
         dataQueueConnect.join()
     else:
@@ -1212,6 +1260,7 @@ if __name__ == "__main__":
                     READ_OK=False
                     getData(file)
                     READ_OK=True
+                    logging.info('Waiting for threads to finishing processing events.')
                     dataQueueDisconnect.join()
                     dataQueueConnect.join()
                 else:
