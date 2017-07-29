@@ -70,6 +70,26 @@ class outputWriter():
         finally:
             self.lock.release()
 
+    def updateProbeInfo(self,infoDict1,infoDict2):
+        # "probeInfo" : [ { "start" : 1500897808, "probeID" : 3264, "end" : 1500900061, "state" : 20 } ] }
+        newInfoDict = {}
+        for inDict in [infoDict1,infoDict2]:
+            for pDict in inDict:
+                if pDict['probeID'] not in newInfoDict.keys():
+                    if pDict['end'] != -1:
+                        newInfoDict[pDict['probeID']] = {'start':pDict['probeID'],'end':pDict['end'],\
+                                                         'state':pDict['state'],'probeID':pDict['probeID'],\
+                                                         'prefix_v4':pDict['prefix_v4'],'address_v4':pDict['address_v4']}
+                else:
+                    # Pick min start
+                    newInfoDict[pDict['probeID']]['start'] = min(newInfoDict[pDict['probeID']]['start'], pDict['start'])
+                    # Pick max end
+                    newInfoDict[pDict['probeID']]['end'] = max(newInfoDict[pDict['probeID']]['end'], pDict['end'])
+                    # Pick max state
+                    newInfoDict[pDict['probeID']]['state'] = max(newInfoDict[pDict['probeID']]['state'], pDict['state'])
+        retList = [p for p in newInfoDict.values()]
+        return retList
+
     def toMongoDB(self,val):
         mongodb = mongoClient(self.dbname)
         (id, startMedian, endMedian, durationMedian, numProbesInUnit, probeIds)=val
@@ -109,15 +129,77 @@ class outputWriter():
                 print('Updated '+str(entry["_id"]))
                 print(results)
                 print('---------')
+                #startOfEventRecorded = float(entry['start'])
+                #startMinimum = min(startOfEventRecorded, startMedian)
+                newProbeInfo = self.updateProbeInfo(entry['probeInfo'], probeIds)
                 try:
-                    mongodb.db[collectionName].update({"_id": entry["_id"]}, {'$set':{"end": endMedian, "duration":durationMedian ,\
-                                                                          'probeInfo':probeIds,'insertTime':insertTime}})
+                    mongodb.db[collectionName].update({"_id": entry["_id"]}, {'$set':{"start":startMedian,"end": endMedian, "duration":durationMedian ,\
+                                                                          'probeInfo':newProbeInfo,'insertTime':insertTime}})
 
                 except:
                     traceback.print_exc()
         else:
-            mongodb.insertLiveResults(collectionName,results)
-            if incFlag:
+            # There was no previously ongoing event for this stream, but a complete event overlapping could exists. Merge them. Only when pushing compelete events
+            if not incFlag:
+                insertFlag = False
+                # Case 1: before
+                entriesCheckOverlap = mongodb.db[collectionName].find({'streamName': streamName, 'start': {'$gt':startMedian,'$lt':endMedian}, 'end':{'$gt':endMedian}})
+                if entriesCheckOverlap.count() > 0:
+                    # Update event
+                    entry = entriesCheckOverlap[0]
+                    newDuration = float(entry['end']) - float(startMedian)
+                    # Update probeInfo
+                    newProbeInfo = self.updateProbeInfo(entry['probeInfo'],probeIds)
+                    mongodb.db[collectionName].update({"_id": entry["_id"]}, {'$set': {"start": startMedian, "duration": newDuration, \
+                                 'probeInfo': newProbeInfo, 'insertTime': insertTime}})
+                    insertFlag = True
+
+                # Case 2: contained
+                entriesCheckOverlap2 = mongodb.db[collectionName].find(
+                    {'streamName': streamName, 'start': {'$lt': startMedian},'end': {'$gt': endMedian}})
+                if entriesCheckOverlap2.count() > 0:
+                    # Update event
+                    entry = entriesCheckOverlap2[0]
+                    # start, end and duration don't change. Just update probeIDs
+                    newProbeInfo = self.updateProbeInfo(entry['probeInfo'], probeIds)
+                    mongodb.db[collectionName].update({"_id": entry["_id"]},
+                                                      {'$set': {'probeInfo': newProbeInfo, 'insertTime': insertTime}})
+                    insertFlag = True
+
+                # Case 3: after
+                entriesCheckOverlap3 = mongodb.db[collectionName].find(
+                    {'streamName': streamName, 'start': {'$lt': startMedian},'end': {'$lt': endMedian,'$gt':startMedian}})
+                if entriesCheckOverlap3.count() > 0:
+                    # Update event
+                    entry = entriesCheckOverlap3[0]
+                    # start, end and duration don't change. Just update probeIDs
+                    newProbeInfo = self.updateProbeInfo(entry['probeInfo'], probeIds)
+                    newDuration = float(endMedian) - float(entry['start'])
+                    mongodb.db[collectionName].update({"_id": entry["_id"]},
+                                                      {'$set': {'probeInfo': newProbeInfo, 'insertTime': insertTime, 'end':endMedian,\
+                                                                'duration':newDuration}})
+                    insertFlag = True
+
+                # Case 4: covering
+                entriesCheckOverlap4 = mongodb.db[collectionName].find(
+                    {'streamName': streamName, 'start': {'$gt': startMedian},'end': {'$lt': endMedian}})
+                if entriesCheckOverlap4.count() > 0:
+                    # Update event
+                    entry = entriesCheckOverlap4[0]
+                    newProbeInfo = self.updateProbeInfo(entry['probeInfo'], probeIds)
+                    newDuration = float(endMedian) - float(startMedian)
+                    mongodb.db[collectionName].update({"_id": entry["_id"]},
+                                                      {'$set': {'probeInfo': newProbeInfo, 'insertTime': insertTime, \
+                                                                'start':startMedian,'end':endMedian,\
+                                                                'duration':newDuration}})
+                    insertFlag = True
+
+                if not insertFlag:
+                    # First time insert
+                    mongodb.insertLiveResults(collectionName, results)
+
+            else:
+                mongodb.insertLiveResults(collectionName,results)
                 print('---------')
                 entries = mongodb.db[collectionName].find({'start': startMedian, 'streamName': streamName, 'end': -1})
                 print('Inserted overlapping outage: ' + str(entries[0]["_id"]))
@@ -303,7 +385,7 @@ def on_result_response(*args):
 '''
 
 def getLiveRestAPI():
-    WINDOW = 1800
+    WINDOW = 600
     global READ_OK
     currentTS = int((datetime.utcnow() - datetime.utcfromtimestamp(0)).total_seconds())
     while True:
@@ -709,7 +791,9 @@ def getPerEventStats(burstyProbeDurations,burstyProbeDurationsOngoing,numProbesI
                 startTimes.append(infoDict["disconnect"])
                 endTimes.append(infoDict["connect"])
                 durations.append(infoDict["duration"])
-                probeIds.append({'probeID':pid,'state':maxState,"start":infoDict["disconnect"],"end":infoDict["connect"]})
+                probeIds.append({'probeID':pid,'state':maxState,"start":infoDict["disconnect"],\
+                                 "end":infoDict["connect"],'prefix_v4':probeInfo.probeIDToPrefixv4Dict[pid], \
+                                 'address_v4': probeInfo.probeIDToAddrv4Dict[pid]})
         startMedian=np.median(np.array(startTimes))
         endMedian=np.median(np.array(endTimes))
         durationMedian=np.median(np.array(durations))
@@ -725,7 +809,9 @@ def getPerEventStats(burstyProbeDurations,burstyProbeDurationsOngoing,numProbesI
             maxState=max(inDict2.keys())
             for infoDict in inDict2[maxState]:
                 startTimes.append(infoDict["disconnect"])
-                probeIds.append({'probeID':pid,'state':maxState,"start":infoDict["disconnect"],"end":-1})
+                probeIds.append({'probeID':pid,'state':maxState,"start":infoDict["disconnect"],\
+                                 "end":-1,'prefix_v4':probeInfo.probeIDToPrefixv4Dict[pid],\
+                                'address_v4':probeInfo.probeIDToAddrv4Dict[pid]})
         startMedian=np.median(np.array(startTimes))
         burstEventInfo.append([id,startMedian,-1,-1,numProbesInUnit,probeIds])
         #output.write([id,startMedian,endMedian,durationMedian,numProbesInUnit,probeIds])
@@ -742,7 +828,7 @@ def workerThread(threadType):
     global READ_OK
     global dataTimeRangeInSeconds
     numProbesInUnit=0
-    pendingEvents=collections.deque(maxlen=100000)
+    pendingEvents=collections.deque(maxlen=20000)
 
     while True:
         eventLocal=[]
@@ -927,7 +1013,7 @@ def workerThread(threadType):
                                 logging.error('Error in selecting interesting events')
                         # Clean up earlier events that may have been completed now
                         itrEV = 0
-                        tmpdeququq = collections.deque(maxlen=1000000)
+                        tmpdeququq = collections.deque(maxlen=20000)
                         for evets in pendingEvents:
                             if evets['prb_id'] not in probesWhichGotConnected:
                                 tmpdeququq.append(evets)
@@ -1173,7 +1259,7 @@ if __name__ == "__main__":
     dataQueueDisconnect=Queue.Queue()
     dataQueueConnect=Queue.Queue()
     #dataList=[]
-    dataList=collections.deque(maxlen=10000000)
+    dataList=collections.deque(maxlen=20000)
 
     pp=PrettyPrinter()
     #outputDisc=outputWriter(resultfilename='data/discoResultsDisconnections.txt')
@@ -1244,7 +1330,7 @@ if __name__ == "__main__":
                         eventFiles.append(os.path.join(dp, name))
             else:
                 eventFiles.append(dataFile)
-
+            eventFiles = sorted(eventFiles)
             for file in eventFiles:
                 if file.endswith('.gz'):
                     logging.info('Processing {0}'.format(file))
