@@ -77,7 +77,7 @@ class outputWriter():
             for pDict in inDict:
                 if pDict['probeID'] not in newInfoDict.keys():
                     if pDict['end'] != -1:
-                        newInfoDict[pDict['probeID']] = {'start':pDict['probeID'],'end':pDict['end'],\
+                        newInfoDict[pDict['probeID']] = {'start':pDict['start'],'end':pDict['end'],\
                                                          'state':pDict['state'],'probeID':pDict['probeID'],\
                                                          'prefix_v4':pDict['prefix_v4'],'address_v4':pDict['address_v4']}
                 else:
@@ -117,94 +117,99 @@ class outputWriter():
 
         incFlag = False
         if results['duration'] == -1:
+            if not READ_ONILNE:
+                return
             incFlag = True
         sys.stdout.flush()
         #return
         # Check if this event has an entry
-        entries = mongodb.db[collectionName].find({'streamName':streamName,'duration':-1})
-        if entries.count() > 0:
-            if not incFlag:
-                entry = entries[0]
-                print('---------')
-                print('Updated '+str(entry["_id"]))
-                print(results)
-                print('---------')
-                #startOfEventRecorded = float(entry['start'])
-                #startMinimum = min(startOfEventRecorded, startMedian)
-                newProbeInfo = self.updateProbeInfo(entry['probeInfo'], probeIds)
-                try:
-                    mongodb.db[collectionName].update({"_id": entry["_id"]}, {'$set':{"start":startMedian,"end": endMedian, "duration":durationMedian ,\
-                                                                          'probeInfo':newProbeInfo,'insertTime':insertTime}})
-
-                except:
-                    traceback.print_exc()
-        else:
-            # There was no previously ongoing event for this stream, but a complete event overlapping could exists. Merge them. Only when pushing compelete events
-            if not incFlag:
-                insertFlag = False
-                # Case 1: before
-                entriesCheckOverlap = mongodb.db[collectionName].find({'streamName': streamName, 'start': {'$gt':startMedian,'$lt':endMedian}, 'end':{'$gt':endMedian}})
-                if entriesCheckOverlap.count() > 0:
-                    # Update event
-                    entry = entriesCheckOverlap[0]
-                    newDuration = float(entry['end']) - float(startMedian)
-                    # Update probeInfo
-                    newProbeInfo = self.updateProbeInfo(entry['probeInfo'],probeIds)
-                    mongodb.db[collectionName].update({"_id": entry["_id"]}, {'$set': {"start": startMedian, "duration": newDuration, \
-                                 'probeInfo': newProbeInfo, 'insertTime': insertTime}})
-                    insertFlag = True
-
-                # Case 2: contained
-                entriesCheckOverlap2 = mongodb.db[collectionName].find(
-                    {'streamName': streamName, 'start': {'$lt': startMedian},'end': {'$gt': endMedian}})
-                if entriesCheckOverlap2.count() > 0:
-                    # Update event
-                    entry = entriesCheckOverlap2[0]
-                    # start, end and duration don't change. Just update probeIDs
+        if READ_ONILNE:
+            entries = mongodb.db[collectionName].find({'streamName':streamName,'duration':-1})
+            if entries.count() > 0:
+                if not incFlag:
+                    entry = entries[0]
+                    print('---------')
+                    print('Updated '+str(entry["_id"]))
+                    print(results)
+                    print('---------')
+                    #startOfEventRecorded = float(entry['start'])
+                    #startMinimum = min(startOfEventRecorded, startMedian)
                     newProbeInfo = self.updateProbeInfo(entry['probeInfo'], probeIds)
-                    mongodb.db[collectionName].update({"_id": entry["_id"]},
-                                                      {'$set': {'probeInfo': newProbeInfo, 'insertTime': insertTime}})
-                    insertFlag = True
+                    try:
+                        mongodb.db[collectionName].update({"_id": entry["_id"]}, {'$set':{"start":startMedian,"end": endMedian, "duration":durationMedian ,\
+                                                                              'probeInfo':newProbeInfo,'insertTime':insertTime}})
 
-                # Case 3: after
-                entriesCheckOverlap3 = mongodb.db[collectionName].find(
-                    {'streamName': streamName, 'start': {'$lt': startMedian},'end': {'$lt': endMedian,'$gt':startMedian}})
-                if entriesCheckOverlap3.count() > 0:
-                    # Update event
-                    entry = entriesCheckOverlap3[0]
-                    # start, end and duration don't change. Just update probeIDs
-                    newProbeInfo = self.updateProbeInfo(entry['probeInfo'], probeIds)
-                    newDuration = float(endMedian) - float(entry['start'])
-                    mongodb.db[collectionName].update({"_id": entry["_id"]},
-                                                      {'$set': {'probeInfo': newProbeInfo, 'insertTime': insertTime, 'end':endMedian,\
-                                                                'duration':newDuration}})
-                    insertFlag = True
-
-                # Case 4: covering
-                entriesCheckOverlap4 = mongodb.db[collectionName].find(
-                    {'streamName': streamName, 'start': {'$gt': startMedian},'end': {'$lt': endMedian}})
-                if entriesCheckOverlap4.count() > 0:
-                    # Update event
-                    entry = entriesCheckOverlap4[0]
-                    newProbeInfo = self.updateProbeInfo(entry['probeInfo'], probeIds)
-                    newDuration = float(endMedian) - float(startMedian)
-                    mongodb.db[collectionName].update({"_id": entry["_id"]},
-                                                      {'$set': {'probeInfo': newProbeInfo, 'insertTime': insertTime, \
-                                                                'start':startMedian,'end':endMedian,\
-                                                                'duration':newDuration}})
-                    insertFlag = True
-
-                if not insertFlag:
-                    # First time insert
-                    mongodb.insertLiveResults(collectionName, results)
-
+                    except:
+                        traceback.print_exc()
             else:
-                mongodb.insertLiveResults(collectionName,results)
-                print('---------')
-                entries = mongodb.db[collectionName].find({'start': startMedian, 'streamName': streamName, 'end': -1})
-                print('Inserted overlapping outage: ' + str(entries[0]["_id"]))
-                print(results)
-                print('---------')
+                # There was no previously ongoing event for this stream, but a complete event overlapping could exists. Merge them. Only when pushing compelete events
+                if not incFlag:
+                    insertFlag = False
+                    # Case 1: before
+                    entriesCheckOverlap = mongodb.db[collectionName].find({'streamName': streamName, 'start': {'$gt':startMedian,'$lt':endMedian}, 'end':{'$gt':endMedian}})
+                    if entriesCheckOverlap.count() > 0:
+                        # Update event
+                        entry = entriesCheckOverlap[0]
+                        newDuration = float(entry['end']) - float(startMedian)
+                        # Update probeInfo
+                        newProbeInfo = self.updateProbeInfo(entry['probeInfo'],probeIds)
+                        mongodb.db[collectionName].update({"_id": entry["_id"]}, {'$set': {"start": startMedian, "duration": newDuration, \
+                                     'probeInfo': newProbeInfo, 'insertTime': insertTime}})
+                        insertFlag = True
+
+                    # Case 2: contained
+                    entriesCheckOverlap2 = mongodb.db[collectionName].find(
+                        {'streamName': streamName, 'start': {'$lt': startMedian},'end': {'$gt': endMedian}})
+                    if entriesCheckOverlap2.count() > 0:
+                        # Update event
+                        entry = entriesCheckOverlap2[0]
+                        # start, end and duration don't change. Just update probeIDs
+                        newProbeInfo = self.updateProbeInfo(entry['probeInfo'], probeIds)
+                        mongodb.db[collectionName].update({"_id": entry["_id"]},
+                                                          {'$set': {'probeInfo': newProbeInfo, 'insertTime': insertTime}})
+                        insertFlag = True
+
+                    # Case 3: after
+                    entriesCheckOverlap3 = mongodb.db[collectionName].find(
+                        {'streamName': streamName, 'start': {'$lt': startMedian},'end': {'$lt': endMedian,'$gt':startMedian}})
+                    if entriesCheckOverlap3.count() > 0:
+                        # Update event
+                        entry = entriesCheckOverlap3[0]
+                        # start, end and duration don't change. Just update probeIDs
+                        newProbeInfo = self.updateProbeInfo(entry['probeInfo'], probeIds)
+                        newDuration = float(endMedian) - float(entry['start'])
+                        mongodb.db[collectionName].update({"_id": entry["_id"]},
+                                                          {'$set': {'probeInfo': newProbeInfo, 'insertTime': insertTime, 'end':endMedian,\
+                                                                    'duration':newDuration}})
+                        insertFlag = True
+
+                    # Case 4: covering
+                    entriesCheckOverlap4 = mongodb.db[collectionName].find(
+                        {'streamName': streamName, 'start': {'$gt': startMedian},'end': {'$lt': endMedian}})
+                    if entriesCheckOverlap4.count() > 0:
+                        # Update event
+                        entry = entriesCheckOverlap4[0]
+                        newProbeInfo = self.updateProbeInfo(entry['probeInfo'], probeIds)
+                        newDuration = float(endMedian) - float(startMedian)
+                        mongodb.db[collectionName].update({"_id": entry["_id"]},
+                                                          {'$set': {'probeInfo': newProbeInfo, 'insertTime': insertTime, \
+                                                                    'start':startMedian,'end':endMedian,\
+                                                                    'duration':newDuration}})
+                        insertFlag = True
+
+                    if not insertFlag:
+                        # First time insert
+                        mongodb.insertLiveResults(collectionName, results)
+
+                else:
+                    mongodb.insertLiveResults(collectionName,results)
+                    print('---------')
+                    entries = mongodb.db[collectionName].find({'start': startMedian, 'streamName': streamName, 'end': -1})
+                    print('Inserted overlapping outage: ' + str(entries[0]["_id"]))
+                    print(results)
+                    print('---------')
+        else:
+            mongodb.insertLiveResults(collectionName, results)
 
     def pushProbeInfoToDB(self,probeInfo):
         mongodb = mongoClient(self.dbname)
@@ -227,8 +232,9 @@ class outputWriter():
             mongodb.insertLiveResults(collectionName, streamInfoData)
 
     def updateCurrentTimeInDB(self,ts):
-        mongodb = mongoClient(self.dbname)
-        mongodb.updateLastSeenTime(ts)
+        if READ_ONILNE:
+            mongodb = mongoClient(self.dbname)
+            mongodb.updateLastSeenTime(ts)
 
 
 """Methods for atlas stream"""
@@ -1013,13 +1019,14 @@ def workerThread(threadType):
                                 logging.error('Error in selecting interesting events')
                         # Clean up earlier events that may have been completed now
                         itrEV = 0
-                        tmpdeququq = collections.deque(maxlen=20000)
-                        for evets in pendingEvents:
-                            if evets['prb_id'] not in probesWhichGotConnected:
-                                tmpdeququq.append(evets)
-                        pendingEvents = tmpdeququq
-                        pendingEvents.extend(newPendingEvents)
-                        del tmpdeququq
+                        #tmpdeququq = collections.deque(maxlen=20000)
+                        #for evets in pendingEvents:
+                        #    if evets['prb_id'] not in probesWhichGotConnected:
+                        #        tmpdeququq.append(evets)
+                        #pendingEvents = tmpdeququq
+                        #pendingEvents.extend(newPendingEvents)
+                        #del tmpdeququq
+                        pendingEvents = newPendingEvents
 
                         output=outputWriter(resultfilename='results/discoEventMedians_'+dataDate+'_'+str(key)+'.txt')
                         if len(burstyProbeDurations)>0:
