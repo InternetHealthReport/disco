@@ -2,11 +2,12 @@
 from pymongo import MongoClient,ASCENDING
 from datetime import datetime
 import ipaddress
+import configparser
 import traceback
 import sys
 class mongoClient():
-    def __init__(self):
-        self.client = MongoClient('mongodb-iijlab')
+    def __init__(self,dbname):
+        self.client = MongoClient(dbname)
         self.db = self.client.disco
         self.dbatlas = self.client.atlas
         self.posts = self.db.posts
@@ -139,7 +140,25 @@ class mongoClient():
 
         return toReturnCollections
 
+    def insertLiveResults(self,collection,results):
+        self.db[collection].insert(results)
+
 if __name__ == "__main__":
-    mongodb=mongoClient()
+    configfile = 'conf/mongodb.conf'
+    config = configparser.ConfigParser()
+    try:
+        config.sections()
+        config.read(configfile)
+    except:
+        logging.error('Missing config: ' + configfile)
+        exit(1)
+
+    try:
+        DBNAME = eval(config['MONGODB']['dbname'])
+    except:
+        print('Error in reading conf. Check parameters.')
+        exit(1)
+
+    mongodb=mongoClient(DBNAME)
     #mongodb.createIndexesOnCollection('pingoutageall_20150402')
     mongodb.createIndexesOnTraceroutes()

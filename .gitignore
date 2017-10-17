@@ -90,7 +90,7 @@ ENV/
 
 # Rope project settings
 .ropeproject
-.idea
+.idea/
 *.pickle
 *.data
 *.dat
@@ -101,4 +101,10 @@ ENV/
 *.backup
 
 # Disco
+data/
+figures/
+outageEval/
 results/
+topo/
+logs/
+run.stdout

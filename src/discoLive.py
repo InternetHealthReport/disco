@@ -19,6 +19,7 @@ from plotFunctions import plotter
 from probeEnrichInfo import probeEnrichInfo
 from emailWithAttachment import *
 #from tracerouteProcessor import tracerouteProcessor
+from mongoClient import mongoClient
 from pprint import PrettyPrinter
 from datetime import datetime
 import gzip
@@ -36,6 +37,24 @@ class outputWriter():
         if os.path.exists(self.resultfilename):
             os.remove(self.resultfilename)
 
+        # Read MongoDB config
+        configfile = 'conf/mongodb.conf'
+        config = configparser.ConfigParser()
+        try:
+            config.sections()
+            config.read(configfile)
+        except:
+            logging.error('Missing config: ' + configfile)
+            exit(1)
+
+        try:
+            DBNAME = config['MONGODB']['dbname']
+        except:
+            print('Error in reading mongodb.conf. Check parameters.')
+            exit(1)
+
+        self.mongodb = mongoClient(DBNAME)
+
     def write(self,val,delimiter="|"):
         self.lock.acquire()
         try:
@@ -47,7 +66,150 @@ class outputWriter():
         finally:
             self.lock.release()
 
+    def toMongoDB(self,val):
+        (id, startMedian, endMedian, durationMedian, numProbesInUnit, probeIds)=val
+        results={}
+        results[str(id)]={'start':startMedian,'end':endMedian,'duration':durationMedian,'numberOfProbesInUnit':numProbesInUnit,'pids':probeIds}
+        collectionName=self.resultfilename.split('/')[1].split('.')[0]
+        self.mongodb.insertLiveResults(collectionName,results)
 
+"""Methods for atlas stream"""
+
+
+class ConnectionError(Exception):
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)
+
+
+def on_result_response(*args):
+    """
+    Function that will be called every time we receive a new result.
+    Args is a tuple, so you should use args[0] to access the real message.
+    """
+    # print args[0]
+    item = args[0]
+    event = eval(str(item))
+    # print(event)
+    dataList.append(event)
+    if DETECT_DISCO_BURST:
+        if event["event"] == "disconnect":
+            dataQueueDisconnect.put(event)
+    if DETECT_CON_BURST:
+        if event["event"] == "connect":
+            dataQueueConnect.put(event)
+
+
+def on_error(*args):
+    #print "got in on_error"
+    #print args
+    raise ConnectionError("Error")
+
+
+def on_connect(*args):
+    #print "got in on_connect"
+    #print args
+    return
+
+
+def on_reconnect(*args):
+    #print "got in on_reconnect"
+    #print args
+    raise ConnectionError("Reconnection")
+
+
+def on_close(*args):
+    #print "got in on_close"
+    #print args
+    raise ConnectionError("Closed")
+
+
+def on_disconnect(*args):
+    #print "got in on_disconnect"
+    #print args
+    raise ConnectionError("Disconnection")
+
+
+def on_connect_error(*args):
+    #print "got in on_connect_error"
+    #print args
+    raise ConnectionError("Connection Error")
+
+
+def on_atlas_error(*args):
+    #print "got in on_atlas_error"
+    #print args
+    return
+
+
+def on_atlas_unsubscribe(*args):
+    #print "got in on_atlas_unsubscribe"
+    #print args
+    raise ConnectionError("Unsubscribed")
+
+
+def getLive(allmsm=[7000]):
+    # Start time of this script, we'll try to get it working for 1 hour
+    starttime = datetime.now()
+
+    lastTimestamp = 0
+    currCollection = None
+    lastDownload = None
+    lastConnection = None
+
+    while (datetime.now() - starttime).seconds < 3600:
+        try:
+            lastConnection = datetime.now()
+            atlas_stream = AtlasStream()
+            atlas_stream.connect()
+            # Measurement results
+            channel = "atlas_result"
+            # Bind function we want to run with every result message received
+            atlas_stream.socketIO.on("connect", on_connect)
+            atlas_stream.socketIO.on("disconnect", on_disconnect)
+            atlas_stream.socketIO.on("reconnect", on_reconnect)
+            atlas_stream.socketIO.on("error", on_error)
+            atlas_stream.socketIO.on("close", on_close)
+            atlas_stream.socketIO.on("connect_error", on_connect_error)
+            atlas_stream.socketIO.on("atlas_error", on_atlas_error)
+            atlas_stream.socketIO.on("atlas_unsubscribed", on_atlas_unsubscribe)
+            # Subscribe to new stream
+            atlas_stream.bind_channel(channel, on_result_response)
+
+            for msm in allmsm:
+                # stream_parameters = {"type": "traceroute", "buffering":True, "equalsTo":{"af": 4},   "msm": msm}
+                stream_parameters = {"buffering": True, "equalsTo": {"af": 4}, "msm": msm}
+                atlas_stream.start_stream(stream_type="result", **stream_parameters)
+
+            # Run for 1 hour
+            # print "start stream for msm ids: %s" % allmsm
+            atlas_stream.timeout(seconds=3600 - (datetime.now() - starttime).seconds)
+            # Shut down everything
+            atlas_stream.disconnect()
+
+        except ConnectionError as e:
+            now = datetime.utcnow()
+            # print "%s: %s" % (now, e)
+            # print "last download: %s" % lastDownload
+            # print "last connection: %s" % lastConnection
+            atlas_stream.disconnect()
+
+            # Wait a bit if the connection was made less than a minute ago
+            if lastConnection + datetime.timedelta(60) > now:
+                time.sleep(60)
+                # print "Go back to the loop and reconnect"
+
+        except Exception as e:
+            save_note = "Exception dump: %s : %s.\nCommand: %s" % (type(e).__name__, e, sys.argv)
+            exception_fp = open("dump_%s.err" % datetime.now(), "w")
+            exception_fp.write(save_note)
+            sys.exit()
+
+
+""""""
+'''
 def on_result_response(*args):
     """
     Function that will be called every time we receive a new result.
@@ -64,6 +226,7 @@ def on_result_response(*args):
     if DETECT_CON_BURST:
         if event["event"] == "connect":
             dataQueueConnect.put(event)
+'''
 
 def getCleanVal(val,tsClean):
     newVal=val+1
@@ -428,6 +591,7 @@ def getPerEventStats(burstyProbeDurations,numProbesInUnit,output):
         durationMedian=np.median(np.array(durations))
         burstEventInfo.append([id,startMedian,endMedian,durationMedian,numProbesInUnit,probeIds])
         output.write([id,startMedian,endMedian,durationMedian,numProbesInUnit,probeIds])
+        output.toMongoDB([id, startMedian, endMedian, durationMedian, numProbesInUnit, probeIds])
     return burstEventInfo
 
 def workerThread(threadType):
@@ -713,8 +877,6 @@ if __name__ == "__main__":
     else:
         probeInfo.loadInfoFromFiles()
 
-
-
     #Read filters and prepare a set of valid probe IDs
     filterDict=eval(config['FILTERS']['filterDict'])
     probeClusterDistanceThreshold=int(config['FILTERS']['probeClusterDistanceThreshold'])
@@ -822,21 +984,25 @@ if __name__ == "__main__":
             WAIT_TIME=60
         dataTimeRangeInSeconds=int(WAIT_TIME)
         logging.info('Reading Online with wait time {0} seconds.'.format(WAIT_TIME))
+        '''
         try:
-
+            
             #Read Stream
             atlas_stream = AtlasStream()
             atlas_stream.connect()
 
             # Probe's connection status results
-            channel = "probe"
+            #channel = "atlas_probestatus"
+            channel = "atlas_result"
+            stream_parameters = {"msm": 7000}
 
             atlas_stream.bind_channel(channel, on_result_response)
             #1409132340
             #1409137200
             #stream_parameters = {"startTime":1409132240,"endTime":1409137200,"speed":5}
-            stream_parameters = {"enrichProbes": True}
-            atlas_stream.start_stream(stream_type="probestatus", **stream_parameters)
+            #stream_parameters = {"enrichProbes": True}
+            #atlas_stream.start_stream(stream_type="probestatus", **stream_parameters)
+            atlas_stream.start_stream(stream_type="result", **stream_parameters)
 
             atlas_stream.timeout()
             dataQueueDisconnect.join()
@@ -844,10 +1010,15 @@ if __name__ == "__main__":
 
             # Shut down everything
             atlas_stream.disconnect()
+            
         except:
             print('Unexpected Event. Quiting.')
             logging.error('Unexpected Event. Quiting.')
             atlas_stream.disconnect()
+        '''
+        getLive()
+        dataQueueDisconnect.join()
+        dataQueueConnect.join()
     else:
         try:
             eventFiles=[]
