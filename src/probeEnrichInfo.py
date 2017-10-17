@@ -16,6 +16,10 @@ class probeEnrichInfo():
         self.probeIDToCountryDict={}
         self.countryToProbeIDDict={}
         self.probeIDToLocDict={}
+        self.probeIDToPrefixv4Dict = {}
+        self.probeIDToPrefixv6Dict = {}
+        self.probeIDToAddrv4Dict = {}
+        self.probeIDToAddrv6Dict = {}
 
     def loadInfoFromFiles(self):
         self.lock.acquire()
@@ -30,10 +34,18 @@ class probeEnrichInfo():
                         if probe['status']!=3:
                             if probe['prefix_v4']!='null':
                                 asn=probe['asn_v4']
+                                self.probeIDToPrefixv4Dict[probe['id']]=str(probe['prefix_v4'])
                             elif probe['prefix_v6']!='null':
                                 asn=probe['asn_v6']
+                                self.probeIDToPrefixv6Dict[probe['id']] = str(probe['prefix_v6'])
                             else:
                                 continue
+
+                            if probe['address_v4'] != 'null':
+                                self.probeIDToAddrv4Dict[probe['id']]=str(probe['address_v4'])
+                            if probe['address_v6'] != 'null':
+                                self.probeIDToAddrv6Dict[probe['id']]=str(probe['address_v6'])
+
                             if asn is not None and asn != "" and asn != 'None':
                                 if asn not in self.asnToProbeIDDict.keys():
                                     self.asnToProbeIDDict[asn]=set()
@@ -62,6 +74,10 @@ class probeEnrichInfo():
             pickle.dump(self.probeIDToCountryDict,open('data/quickReadModuleData/'+self.dataYear+'_probeIDToCountryDict.pickle','wb'))
             pickle.dump(self.countryToProbeIDDict,open('data/quickReadModuleData/'+self.dataYear+'_countryToProbeIDDict.pickle','wb'))
             pickle.dump(self.probeIDToLocDict,open('data/quickReadModuleData/'+self.dataYear+'_probeIDToLocDict.pickle','wb'))
+            pickle.dump(self.probeIDToPrefixv4Dict,open('data/quickReadModuleData/' + self.dataYear + '_probeIDToPrefixv4Dict.pickle', 'wb'))
+            pickle.dump(self.probeIDToPrefixv6Dict,open('data/quickReadModuleData/' + self.dataYear + '_probeIDToPrefixv6Dict.pickle', 'wb'))
+            pickle.dump(self.probeIDToAddrv4Dict,open('data/quickReadModuleData/' + self.dataYear + '_probeIDToAddrv4Dict.pickle', 'wb'))
+            pickle.dump(self.probeIDToAddrv6Dict,open('data/quickReadModuleData/' + self.dataYear + '_probeIDToAddrv6Dict.pickle', 'wb'))
         except:
             print('Error: Missing probeArchive files ?')
             traceback.print_exc()
@@ -76,6 +92,10 @@ class probeEnrichInfo():
             self.probeIDToCountryDict=pickle.load(open('data/quickReadModuleData/'+self.dataYear+'_probeIDToCountryDict.pickle'))
             self.countryToProbeIDDict=pickle.load(open('data/quickReadModuleData/'+self.dataYear+'_countryToProbeIDDict.pickle'))
             self.probeIDToLocDict=pickle.load(open('data/quickReadModuleData/'+self.dataYear+'_probeIDToLocDict.pickle'))
+            self.probeIDToPrefixv4Dict = pickle.load(open('data/quickReadModuleData/' + self.dataYear + '_probeIDToPrefixv4Dict.pickle'))
+            self.probeIDToPrefixv6Dict = pickle.load(open('data/quickReadModuleData/' + self.dataYear + '_probeIDToPrefixv6Dict.pickle'))
+            self.probeIDToAddrv4Dict = pickle.load(open('data/quickReadModuleData/' + self.dataYear + '_probeIDToAddrv4Dict.pickle'))
+            self.probeIDToAddrv6Dict = pickle.load(open('data/quickReadModuleData/' + self.dataYear + '_probeIDToAddrv6Dict.pickle'))
         except:
             self.loadInfoFromFiles()
         finally:

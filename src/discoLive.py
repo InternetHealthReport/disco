@@ -23,8 +23,12 @@ from mongoClient import mongoClient
 from pprint import PrettyPrinter
 from datetime import datetime
 import gzip
+import collections
 from os import listdir
 from os.path import isfile, join
+from datetime import datetime
+from ripe.atlas.cousteau import AtlasResultsRequest
+
 
 class outputWriter():
 
@@ -36,7 +40,7 @@ class outputWriter():
         self.resultfilename = resultfilename
         if os.path.exists(self.resultfilename):
             os.remove(self.resultfilename)
-
+        self.dbname=None
         # Read MongoDB config
         configfile = 'conf/mongodb.conf'
         config = configparser.ConfigParser()
@@ -48,12 +52,12 @@ class outputWriter():
             exit(1)
 
         try:
-            DBNAME = config['MONGODB']['dbname']
+            self.dbname = config['MONGODB']['dbname']
         except:
             print('Error in reading mongodb.conf. Check parameters.')
             exit(1)
 
-        self.mongodb = mongoClient(DBNAME)
+        #self.mongodb = mongoClient(DBNAME)
 
     def write(self,val,delimiter="|"):
         self.lock.acquire()
@@ -66,15 +70,174 @@ class outputWriter():
         finally:
             self.lock.release()
 
+    def updateProbeInfo(self,infoDict1,infoDict2):
+        # "probeInfo" : [ { "start" : 1500897808, "probeID" : 3264, "end" : 1500900061, "state" : 20 } ] }
+        newInfoDict = {}
+        for inDict in [infoDict1,infoDict2]:
+            for pDict in inDict:
+                if pDict['probeID'] not in newInfoDict.keys():
+                    if pDict['end'] != -1:
+                        newInfoDict[pDict['probeID']] = {'start':pDict['start'],'end':pDict['end'],\
+                                                         'state':pDict['state'],'probeID':pDict['probeID'],\
+                                                         'prefix_v4':pDict['prefix_v4'],'address_v4':pDict['address_v4']}
+                else:
+                    # Pick min start
+                    newInfoDict[pDict['probeID']]['start'] = min(newInfoDict[pDict['probeID']]['start'], pDict['start'])
+                    # Pick max end
+                    newInfoDict[pDict['probeID']]['end'] = max(newInfoDict[pDict['probeID']]['end'], pDict['end'])
+                    # Pick max state
+                    newInfoDict[pDict['probeID']]['state'] = max(newInfoDict[pDict['probeID']]['state'], pDict['state'])
+        retList = [p for p in newInfoDict.values()]
+        return retList
+
     def toMongoDB(self,val):
+        mongodb = mongoClient(self.dbname)
         (id, startMedian, endMedian, durationMedian, numProbesInUnit, probeIds)=val
-        results={}
-        results[str(id)]={'start':startMedian,'end':endMedian,'duration':durationMedian,'numberOfProbesInUnit':numProbesInUnit,'pids':probeIds}
-        collectionName=self.resultfilename.split('/')[1].split('.')[0]
-        self.mongodb.insertLiveResults(collectionName,results)
+        #results={}
+        streamName=self.resultfilename.split('/')[1].split('.')[0].split('_')[2]#Gives the stream name
+        streamType=None
+        try:
+            asnum=int(streamName)
+            streamType='asn'
+        except:
+            if '-' in streamName:
+                streamType = 'geo'
+            else:
+                streamType = 'country'
+
+        # Keep track of all conf settings
+        confParams={'probeInfoDataYear':dataYear,'burstLevelThreshold':BURST_THRESHOLD,\
+                    'minimumSignalLength':SIGNAL_LENGTH,'minimumProbesInUnit':MIN_PROBES,\
+                    'probeClusterDistanceThreshold':probeClusterDistanceThreshold}
+        insertTime = int((datetime.utcnow() - datetime.utcfromtimestamp(0)).total_seconds())
+        results={'streamName':streamName,'streamType':streamType,'start':startMedian,'end':endMedian,\
+                 'duration':durationMedian,'numberOfProbesInUnit':numProbesInUnit,'probeInfo':probeIds, \
+                 'confParams':confParams,'insertTime':insertTime}
+        collectionName='streamResults'
+
+        incFlag = False
+        if results['duration'] == -1:
+            if not READ_ONILNE:
+                return
+            incFlag = True
+        sys.stdout.flush()
+        #return
+        # Check if this event has an entry
+        if READ_ONILNE:
+            entries = mongodb.db[collectionName].find({'streamName':streamName,'duration':-1})
+            if entries.count() > 0:
+                if not incFlag:
+                    entry = entries[0]
+                    print('---------')
+                    print('Updated '+str(entry["_id"]))
+                    print(results)
+                    print('---------')
+                    #startOfEventRecorded = float(entry['start'])
+                    #startMinimum = min(startOfEventRecorded, startMedian)
+                    newProbeInfo = self.updateProbeInfo(entry['probeInfo'], probeIds)
+                    try:
+                        mongodb.db[collectionName].update({"_id": entry["_id"]}, {'$set':{"start":startMedian,"end": endMedian, "duration":durationMedian ,\
+                                                                              'probeInfo':newProbeInfo,'insertTime':insertTime}})
+
+                    except:
+                        traceback.print_exc()
+            else:
+                # There was no previously ongoing event for this stream, but a complete event overlapping could exists. Merge them. Only when pushing compelete events
+                if not incFlag:
+                    insertFlag = False
+                    # Case 1: before
+                    entriesCheckOverlap = mongodb.db[collectionName].find({'streamName': streamName, 'start': {'$gt':startMedian,'$lt':endMedian}, 'end':{'$gt':endMedian}})
+                    if entriesCheckOverlap.count() > 0:
+                        # Update event
+                        entry = entriesCheckOverlap[0]
+                        newDuration = float(entry['end']) - float(startMedian)
+                        # Update probeInfo
+                        newProbeInfo = self.updateProbeInfo(entry['probeInfo'],probeIds)
+                        mongodb.db[collectionName].update({"_id": entry["_id"]}, {'$set': {"start": startMedian, "duration": newDuration, \
+                                     'probeInfo': newProbeInfo, 'insertTime': insertTime}})
+                        insertFlag = True
+
+                    # Case 2: contained
+                    entriesCheckOverlap2 = mongodb.db[collectionName].find(
+                        {'streamName': streamName, 'start': {'$lt': startMedian},'end': {'$gt': endMedian}})
+                    if entriesCheckOverlap2.count() > 0:
+                        # Update event
+                        entry = entriesCheckOverlap2[0]
+                        # start, end and duration don't change. Just update probeIDs
+                        newProbeInfo = self.updateProbeInfo(entry['probeInfo'], probeIds)
+                        mongodb.db[collectionName].update({"_id": entry["_id"]},
+                                                          {'$set': {'probeInfo': newProbeInfo, 'insertTime': insertTime}})
+                        insertFlag = True
+
+                    # Case 3: after
+                    entriesCheckOverlap3 = mongodb.db[collectionName].find(
+                        {'streamName': streamName, 'start': {'$lt': startMedian},'end': {'$lt': endMedian,'$gt':startMedian}})
+                    if entriesCheckOverlap3.count() > 0:
+                        # Update event
+                        entry = entriesCheckOverlap3[0]
+                        # start, end and duration don't change. Just update probeIDs
+                        newProbeInfo = self.updateProbeInfo(entry['probeInfo'], probeIds)
+                        newDuration = float(endMedian) - float(entry['start'])
+                        mongodb.db[collectionName].update({"_id": entry["_id"]},
+                                                          {'$set': {'probeInfo': newProbeInfo, 'insertTime': insertTime, 'end':endMedian,\
+                                                                    'duration':newDuration}})
+                        insertFlag = True
+
+                    # Case 4: covering
+                    entriesCheckOverlap4 = mongodb.db[collectionName].find(
+                        {'streamName': streamName, 'start': {'$gt': startMedian},'end': {'$lt': endMedian}})
+                    if entriesCheckOverlap4.count() > 0:
+                        # Update event
+                        entry = entriesCheckOverlap4[0]
+                        newProbeInfo = self.updateProbeInfo(entry['probeInfo'], probeIds)
+                        newDuration = float(endMedian) - float(startMedian)
+                        mongodb.db[collectionName].update({"_id": entry["_id"]},
+                                                          {'$set': {'probeInfo': newProbeInfo, 'insertTime': insertTime, \
+                                                                    'start':startMedian,'end':endMedian,\
+                                                                    'duration':newDuration}})
+                        insertFlag = True
+
+                    if not insertFlag:
+                        # First time insert
+                        mongodb.insertLiveResults(collectionName, results)
+
+                else:
+                    mongodb.insertLiveResults(collectionName,results)
+                    print('---------')
+                    entries = mongodb.db[collectionName].find({'start': startMedian, 'streamName': streamName, 'end': -1})
+                    print('Inserted overlapping outage: ' + str(entries[0]["_id"]))
+                    print(results)
+                    print('---------')
+        else:
+            mongodb.insertLiveResults(collectionName, results)
+
+    def pushProbeInfoToDB(self,probeInfo):
+        mongodb = mongoClient(self.dbname)
+        collectionName='streamInfo'
+        results=mongodb.findInCollection(collectionName,'year',dataYear)
+        if len(results) == 0:
+            allASes=probeInfo.asnToProbeIDDict.keys()
+            allPIDs=probeInfo.probeIDToASNDict.keys()
+            allCountries=probeInfo.countryToProbeIDDict.keys()
+            #streamInfoData={'year':dataYear,'streamsMonitored':{'ases':allASes,'countries':allCountries,'probeIDs':allPIDs}}
+            simpleASN2PID={}
+            for k,v in probeInfo.asnToProbeIDDict.items():
+                simpleASN2PID[str(k)]=list(set(v))
+            simpleCountry2PID = {}
+            for k,v in probeInfo.countryToProbeIDDict.items():
+                simpleCountry2PID[k]=list(set(v))
+            streamInfoData = {'year': dataYear,
+                              'streamsMonitored': {'ases': simpleASN2PID, \
+                                                   'countries': simpleCountry2PID}}
+            mongodb.insertLiveResults(collectionName, streamInfoData)
+
+    def updateCurrentTimeInDB(self,ts):
+        if READ_ONILNE:
+            mongodb = mongoClient(self.dbname)
+            mongodb.updateLastSeenTime(ts)
+
 
 """Methods for atlas stream"""
-
 
 class ConnectionError(Exception):
     def __init__(self, value):
@@ -92,7 +255,7 @@ def on_result_response(*args):
     # print args[0]
     item = args[0]
     event = eval(str(item))
-    # print(event)
+    #print(event)
     dataList.append(event)
     if DETECT_DISCO_BURST:
         if event["event"] == "disconnect":
@@ -117,7 +280,8 @@ def on_connect(*args):
 def on_reconnect(*args):
     #print "got in on_reconnect"
     #print args
-    raise ConnectionError("Reconnection")
+    #raise ConnectionError("Reconnection")
+    return
 
 
 def on_close(*args):
@@ -129,7 +293,8 @@ def on_close(*args):
 def on_disconnect(*args):
     #print "got in on_disconnect"
     #print args
-    raise ConnectionError("Disconnection")
+    #raise ConnectionError("Disconnection")
+    return
 
 
 def on_connect_error(*args):
@@ -159,7 +324,7 @@ def getLive(allmsm=[7000]):
     lastDownload = None
     lastConnection = None
 
-    while (datetime.now() - starttime).seconds < 3600:
+    while True:
         try:
             lastConnection = datetime.now()
             atlas_stream = AtlasStream()
@@ -183,11 +348,12 @@ def getLive(allmsm=[7000]):
                 stream_parameters = {"buffering": True, "equalsTo": {"af": 4}, "msm": msm}
                 atlas_stream.start_stream(stream_type="result", **stream_parameters)
 
-            # Run for 1 hour
-            # print "start stream for msm ids: %s" % allmsm
-            atlas_stream.timeout(seconds=3600 - (datetime.now() - starttime).seconds)
-            # Shut down everything
+            # Run for an hour
+            atlas_stream.timeout(3600)
+            # Shut down everything, stream might timeout so we disconnect and will reconnect
             atlas_stream.disconnect()
+            # Wait a bit if the connection was made less than a minute ago
+            time.sleep(10)
 
         except ConnectionError as e:
             now = datetime.utcnow()
@@ -195,11 +361,7 @@ def getLive(allmsm=[7000]):
             # print "last download: %s" % lastDownload
             # print "last connection: %s" % lastConnection
             atlas_stream.disconnect()
-
-            # Wait a bit if the connection was made less than a minute ago
-            if lastConnection + datetime.timedelta(60) > now:
-                time.sleep(60)
-                # print "Go back to the loop and reconnect"
+            time.sleep(60)
 
         except Exception as e:
             save_note = "Exception dump: %s : %s.\nCommand: %s" % (type(e).__name__, e, sys.argv)
@@ -227,6 +389,28 @@ def on_result_response(*args):
         if event["event"] == "connect":
             dataQueueConnect.put(event)
 '''
+
+def getLiveRestAPI():
+    WINDOW = 600
+    global READ_OK
+    currentTS = int((datetime.utcnow() - datetime.utcfromtimestamp(0)).total_seconds())
+    while True:
+        try:
+            kwargs = {
+                "msm_id": 7000,
+                "start": datetime.utcfromtimestamp(currentTS-WINDOW),
+                "stop": datetime.utcfromtimestamp(currentTS),
+            }
+            is_success, results = AtlasResultsRequest(**kwargs).create()
+            READ_OK = False
+            if is_success:
+                for ent in results:
+                    on_result_response(ent)
+            READ_OK = True
+            time.sleep(WINDOW)
+            currentTS += (WINDOW + 1)
+        except:
+            traceback.print_exc()
 
 def getCleanVal(val,tsClean):
     newVal=val+1
@@ -349,6 +533,7 @@ def countEventsInState(burstsDict,eventsList):
 def getFilteredEvents(eventLocal):
     interestingEvents=[]
     for event in eventLocal:
+        sys.stdout.flush()
         try:
             if event['prb_id'] in selectedProbeIds:
                 interestingEvents.append(event)
@@ -479,7 +664,7 @@ def getData(dataFile):
     except:
         traceback.print_exc()
     '''
-    del dataList[:]
+    #del dataList[:]
     try:
         data = json.load(gzip.open(dataFile))
         for event in data:
@@ -548,8 +733,11 @@ def getTimeStampsForBurstyProbes(burstyProbes,burstDict,burstEventDict):
     return burstyProbeInfoDict
 
 def correlateWithConnectionEvents(burstyProbeInfoDictIn):
+    # Extremely unoptimized way to do this. Need to rewrite this function.
+
     #pp.pprint(burstyProbeInfoDict)
     burstyProbeInfoDict=burstyProbeInfoDictIn
+    allInBurstIDs=[]
     burstyProbeDurations={}
     for event in dataList:
         if event["event"] == "connect":
@@ -557,6 +745,7 @@ def correlateWithConnectionEvents(burstyProbeInfoDictIn):
             if pid in burstyProbeInfoDict.keys():
                 for state in burstyProbeInfoDict[pid].keys():
                     for burstID,tmpSList in burstyProbeInfoDict[pid][state].items():
+                        allInBurstIDs.append(burstID)
                         for tmpS in tmpSList:
                             eventTS=float(event["timestamp"])
                             if eventTS >tmpS:
@@ -569,10 +758,33 @@ def correlateWithConnectionEvents(burstyProbeInfoDictIn):
                                 if state not in burstyProbeDurations[burstID][pid].keys():
                                     burstyProbeDurations[burstID][pid][state]=[]
                                 burstyProbeDurations[burstID][pid][state].append({"disconnect":tmpS,"connect":eventTS,"duration":duration})
+    # Remove cases where only less than half probes connected
+    cleanBurstyProbeDurations={}
+    ongoingBurstIDs=[]
+    for bid in burstyProbeDurations.keys():
+        lenProbeConnVal=len(burstyProbeDurations[bid])
+        if lenProbeConnVal >= float(len(burstyProbeInfoDict.keys()))/2:
+            cleanBurstyProbeDurations[bid]=burstyProbeDurations[bid]
 
-    return burstyProbeDurations
+    burstyProbeDurationsOngoing={}
+    for pid in burstyProbeInfoDict.keys():
+        for state in burstyProbeInfoDict[pid].keys():
+            for burstID, tmpSList in burstyProbeInfoDict[pid][state].items():
+                if burstID in cleanBurstyProbeDurations.keys():
+                    continue
+                for tmpS in tmpSList:
+                    if burstID not in burstyProbeDurationsOngoing.keys():
+                        burstyProbeDurationsOngoing[burstID] = {}
+                    if pid not in burstyProbeDurationsOngoing[burstID].keys():
+                        burstyProbeDurationsOngoing[burstID][pid] = {}
+                    if state not in burstyProbeDurationsOngoing[burstID][pid].keys():
+                        burstyProbeDurationsOngoing[burstID][pid][state] = []
+                        burstyProbeDurationsOngoing[burstID][pid][state].append(
+                        {"disconnect": tmpS, "connect": -1, "duration": -1})
 
-def getPerEventStats(burstyProbeDurations,numProbesInUnit,output):
+    return burstyProbeDurationsOngoing,cleanBurstyProbeDurations
+
+def getPerEventStats(burstyProbeDurations,burstyProbeDurationsOngoing,numProbesInUnit,output):
     burstEventInfo=[]
     for id,inDict in burstyProbeDurations.items():
         startTimes=[]
@@ -585,13 +797,32 @@ def getPerEventStats(burstyProbeDurations,numProbesInUnit,output):
                 startTimes.append(infoDict["disconnect"])
                 endTimes.append(infoDict["connect"])
                 durations.append(infoDict["duration"])
-                probeIds.append({'probeID':pid,'state':maxState,"start":infoDict["disconnect"],"end":infoDict["connect"]})
+                probeIds.append({'probeID':pid,'state':maxState,"start":infoDict["disconnect"],\
+                                 "end":infoDict["connect"],'prefix_v4':probeInfo.probeIDToPrefixv4Dict[pid], \
+                                 'address_v4': probeInfo.probeIDToAddrv4Dict[pid]})
         startMedian=np.median(np.array(startTimes))
         endMedian=np.median(np.array(endTimes))
         durationMedian=np.median(np.array(durations))
         burstEventInfo.append([id,startMedian,endMedian,durationMedian,numProbesInUnit,probeIds])
         output.write([id,startMedian,endMedian,durationMedian,numProbesInUnit,probeIds])
         output.toMongoDB([id, startMedian, endMedian, durationMedian, numProbesInUnit, probeIds])
+
+
+    for id,inDict in burstyProbeDurationsOngoing.items():
+        startTimes=[]
+        probeIds=[]
+        for pid,inDict2 in inDict.items():
+            maxState=max(inDict2.keys())
+            for infoDict in inDict2[maxState]:
+                startTimes.append(infoDict["disconnect"])
+                probeIds.append({'probeID':pid,'state':maxState,"start":infoDict["disconnect"],\
+                                 "end":-1,'prefix_v4':probeInfo.probeIDToPrefixv4Dict[pid],\
+                                'address_v4':probeInfo.probeIDToAddrv4Dict[pid]})
+        startMedian=np.median(np.array(startTimes))
+        burstEventInfo.append([id,startMedian,-1,-1,numProbesInUnit,probeIds])
+        #output.write([id,startMedian,endMedian,durationMedian,numProbesInUnit,probeIds])
+        output.toMongoDB([id, startMedian, -1, -1, numProbesInUnit, probeIds])
+
     return burstEventInfo
 
 def workerThread(threadType):
@@ -601,7 +832,9 @@ def workerThread(threadType):
     intConProbeIDDict={}
     global numSelectedProbesInUnit #Probes after user filter
     global READ_OK
+    global dataTimeRangeInSeconds
     numProbesInUnit=0
+    pendingEvents=collections.deque(maxlen=20000)
 
     while True:
         eventLocal=[]
@@ -611,6 +844,7 @@ def workerThread(threadType):
                 time.sleep(WAIT_TIME)
         else:
             time.sleep(WAIT_TIME)
+        lastQueuedTimestamp=int((datetime.utcnow() - datetime.utcfromtimestamp(0)).total_seconds())
         if threadType=='con':
             itemsToRead=dataQueueConnect.qsize()
         elif threadType=='dis':
@@ -618,19 +852,33 @@ def workerThread(threadType):
         else:
             print('Unknown thread type!')
             exit(1)
-        itr2=itemsToRead
-        if itemsToRead>1:
-            while itemsToRead:
-                if threadType=='con':
-                    event=dataQueueConnect.get()
-                else:
-                    event=dataQueueDisconnect.get()
-                eventLocal.append(event)
-                itemsToRead-=1
+        allPrevTS = set()
+        for eves in pendingEvents:
+            allPrevTS.add(eves['timestamp'])
+            eventLocal.append(eves)
+        itrFromThread = itemsToRead
+        itr2=itrFromThread + len(eventLocal)
+        prevEvs = itr2 - itrFromThread
+        try:
+            if prevEvs > 0:
+                microSecAddFactor = (lastQueuedTimestamp - min(allPrevTS)) * 100
+                dataTimeRangeInSeconds += microSecAddFactor
+        except:
+            traceback.print_exc()
+        logging.info('Events Info - Current:{0} Previous:{1} Total:{2}'.format(itemsToRead, prevEvs, itr2))
+        if itr2 > 1:
+            if itemsToRead>1:
+                while itemsToRead:
+                    if threadType=='con':
+                        event=dataQueueConnect.get()
+                    else:
+                        event=dataQueueDisconnect.get()
+                    eventLocal.append(event)
+                    itemsToRead-=1
 
             interestingEvents=getFilteredEvents(eventLocal)
             if len(interestingEvents)<1:
-                for iter in range(0, itr2):
+                for iter in range(0, itrFromThread):
                     if threadType=='con':
                         dataQueueConnect.task_done()
                     else:
@@ -701,7 +949,7 @@ def workerThread(threadType):
 
 
                 for tStamp,numOfRep in timestampDict.items():
-                    for gr in range(1,numOfRep+1):
+                    for gr in range(0,numOfRep):
                         tsClean.append((tStamp)+(gr/numOfRep))
 
                 if len(tsClean)<SIGNAL_LENGTH:
@@ -713,7 +961,10 @@ def workerThread(threadType):
                 if rawDataPlot:
                     titleInfoText='Total probes matching filter: {0}\nNumber of probes seen in connection events: {1}'.format(numProbesInUnit,len(probesInFilteredData))
                     plotter.plotList(tsClean,'figures/'+threadType+'RawData_'+dataDate+'_'+str(key),titleInfo=titleInfoText)
-                bursts = kleinberg(tsClean,timeRange=dataTimeRangeInSeconds,probesInUnit=numProbesInUnit)
+                balancedNumProbes = int(numProbesInUnit * (dataTimeRangeInSeconds / 8640000))
+                if balancedNumProbes == 0:
+                    balancedNumProbes = 1
+                bursts = kleinberg(tsClean,timeRange=dataTimeRangeInSeconds,probesInUnit=balancedNumProbes)
                 if burstDetectionPlot:
                     plotter.plotBursts(bursts,'figures/'+threadType+'Bursts_'+dataDate+'_'+str(key))
                     filesToEmail.append('figures/'+threadType+'Bursts_'+dataDate+'_'+str(key)+'_'+str(plotter.suffix)+'.'+str(plotter.outputFormat))
@@ -734,8 +985,9 @@ def workerThread(threadType):
                     burstsDict[q].append(tmpDict)
 
                 thresholdedEvents=applyBurstThreshold(burstsDict,eventClean)
-
+                logging.info('Number of thresholded events: '+str(len(thresholdedEvents))+' for key: '+str(key))
                 if len(thresholdedEvents)>0:
+                    sys.stdout.flush()
                     if groupByCountryPlot:
                         intConCountryDict=groupByCountry(thresholdedEvents)
                     if groupByControllerPlot:
@@ -746,15 +998,46 @@ def workerThread(threadType):
                         burstyProbeIDs=intConProbeIDDict.keys()
                         burstEventDict=getBurstEventIDDict(burstsDict)
                         burstyProbeInfoDict=getTimeStampsForBurstyProbes(burstyProbeIDs,burstsDict,burstEventDict)
-                        burstyProbeDurations=correlateWithConnectionEvents(burstyProbeInfoDict)
+                        burstyProbeDurationsOngoing,burstyProbeDurations=correlateWithConnectionEvents(burstyProbeInfoDict)
+                        # Probes that had corresponding connect events
+                        probesWhichGotConnected=[]
+                        for _, inDict in burstyProbeDurations.items():
+                            for pid, _ in inDict.items():
+                                probesWhichGotConnected.append(pid)
+                        probesWhichDidntConnect = []
+                        for everyPr in burstyProbeIDs:
+                            if everyPr not in probesWhichGotConnected:
+                                probesWhichDidntConnect.append(everyPr)
+                        # Calculate new pending events
+                        newPendingEvents = []
+                        for event in eventClean:
+                            try:
+                                if event['prb_id'] in probesWhichDidntConnect:
+                                    newPendingEvents.append(event)
+                            except:
+                                traceback.print_exc()
+                                logging.error('Error in selecting interesting events')
+                        # Clean up earlier events that may have been completed now
+                        itrEV = 0
+                        #tmpdeququq = collections.deque(maxlen=20000)
+                        #for evets in pendingEvents:
+                        #    if evets['prb_id'] not in probesWhichGotConnected:
+                        #        tmpdeququq.append(evets)
+                        #pendingEvents = tmpdeququq
+                        #pendingEvents.extend(newPendingEvents)
+                        #del tmpdeququq
+                        pendingEvents = newPendingEvents
+
                         output=outputWriter(resultfilename='results/discoEventMedians_'+dataDate+'_'+str(key)+'.txt')
                         if len(burstyProbeDurations)>0:
                             filesToEmail.append(output)
-                        burstEventInfo=getPerEventStats(burstyProbeDurations,numProbesInUnit,output)
+                        logging.info('Burst was seen, call made to events stats.')
+                        burstEventInfo=getPerEventStats(burstyProbeDurations,burstyProbeDurationsOngoing,numProbesInUnit,output)
                         #if processTraceroute:
                         #    #Traceroute Processor
                         #    trProcessor=tracerouteProcessor(burstEventInfo,useStream=False)
                         #    trProcessor.pullTraceroutes()
+                    #### For plotting ###
                     if groupByASNPlot:
                         intConASNDict=groupByASN(thresholdedEvents)
                     if groupByCountryPlot and choroplethPlot and not countryKey:
@@ -779,7 +1062,6 @@ def workerThread(threadType):
                             elif len(intConCountryDict)==0:
                                     print("{0},{1}".format('MC',0),file=fp)
                                     print("{0},{1}".format('VA',0),file=fp)
-
                     plotter.lock.acquire()
                     try:
                         if groupByCountryPlot and not countryKey:
@@ -801,23 +1083,38 @@ def workerThread(threadType):
                         traceback.print_exc()
                     finally:
                         plotter.lock.release()
+
                     try:
                         send_mail(filesToEmail)
                     except:
                         pass #Will not work outside netsec, ignore
 
             copyToServerFunc(threadType)
-            for iter in range(0,itr2):
-                if threadType=='con':
-                    dataQueueConnect.task_done()
-                else:
-                    dataQueueDisconnect.task_done()
+            for iter in range(0,itrFromThread):
+                try:
+                    #print('Task Done: {0} {1}'.format(iter,itrFromThread))
+                    sys.stdout.flush()
+                    if threadType=='con':
+                        dataQueueConnect.task_done()
+                    else:
+                        dataQueueDisconnect.task_done()
+                except ValueError:
+                    pass
         else:
-            for iter in range(0, itr2):
-                if threadType == 'con':
-                    dataQueueConnect.task_done()
-                else:
-                    dataQueueDisconnect.task_done()
+            #logging.info('Events seen: {0}{1}{2}'.format(itemsToRead,itrFromThread,itr2))
+            for iter in range(0, itrFromThread):
+                try:
+                    if threadType == 'con':
+                        eve = dataQueueConnect.get()
+                        dataQueueConnect.task_done()
+                    else:
+                        eve = dataQueueDisconnect.get()
+                        dataQueueDisconnect.task_done()
+                except ValueError:
+                    pass
+        outputTS = outputWriter(resultfilename='timeupdate.txt')
+        outputTS.updateCurrentTimeInDB(lastQueuedTimestamp)
+        del outputTS
 
 if __name__ == "__main__":
 
@@ -869,6 +1166,7 @@ if __name__ == "__main__":
     global dataQueueConnect
     #For plots
     plotter=plotter()
+
     #Probe Enrichment Info
     probeInfo=probeEnrichInfo(dataYear=dataYear)
     logging.info('Loading Probe Enrichment Info from {0}'.format(dataYear))
@@ -876,6 +1174,14 @@ if __name__ == "__main__":
         probeInfo.fastLoadInfo()
     else:
         probeInfo.loadInfoFromFiles()
+    # Push probe info to DB
+    outputObj = outputWriter(resultfilename='results/pInfoOut.txt')
+    outputObj.pushProbeInfoToDB(probeInfo)
+    del outputObj
+
+    if SIGNAL_LENGTH < 2:
+        logging.warning('User given signal length too low, using minimum signal length 2.')
+        SIGNAL_LENGTH = 2  # Minimum 2 to detect burst
 
     #Read filters and prepare a set of valid probe IDs
     filterDict=eval(config['FILTERS']['filterDict'])
@@ -959,7 +1265,8 @@ if __name__ == "__main__":
     ts = []
     dataQueueDisconnect=Queue.Queue()
     dataQueueConnect=Queue.Queue()
-    dataList=[]
+    #dataList=[]
+    dataList=collections.deque(maxlen=20000)
 
     pp=PrettyPrinter()
     #outputDisc=outputWriter(resultfilename='data/discoResultsDisconnections.txt')
@@ -982,7 +1289,7 @@ if __name__ == "__main__":
         if WAIT_TIME < 60:
             logging.info('Thread wait time was too low, updated to 60 seconds.')
             WAIT_TIME=60
-        dataTimeRangeInSeconds=int(WAIT_TIME)
+        dataTimeRangeInSeconds=int(WAIT_TIME)*100
         logging.info('Reading Online with wait time {0} seconds.'.format(WAIT_TIME))
         '''
         try:
@@ -1016,17 +1323,21 @@ if __name__ == "__main__":
             logging.error('Unexpected Event. Quiting.')
             atlas_stream.disconnect()
         '''
-        getLive()
+        #getLive()
+        getLiveRestAPI()
         dataQueueDisconnect.join()
         dataQueueConnect.join()
     else:
         try:
             eventFiles=[]
             if os.path.isdir(dataFile):
-                eventFiles = [join(dataFile, f) for f in listdir(dataFile) if isfile(join(dataFile, f))]
+                #eventFiles = [join(dataFile, f) for f in listdir(dataFile) if isfile(join(dataFile, f))]
+                for dp, dn, files in os.walk(dataFile):
+                    for name in files:
+                        eventFiles.append(os.path.join(dp, name))
             else:
                 eventFiles.append(dataFile)
-
+            eventFiles = sorted(eventFiles)
             for file in eventFiles:
                 if file.endswith('.gz'):
                     logging.info('Processing {0}'.format(file))
@@ -1042,6 +1353,7 @@ if __name__ == "__main__":
                     READ_OK=False
                     getData(file)
                     READ_OK=True
+                    logging.info('Waiting for threads to finishing processing events.')
                     dataQueueDisconnect.join()
                     dataQueueConnect.join()
                 else:
