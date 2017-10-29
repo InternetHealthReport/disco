@@ -13,7 +13,7 @@ import traceback
 
 from bson import objectid
 
-MINEVENTLENGTH = 900
+MINEVENTLENGTH = 600
 
 def sendMail(message):
     """
@@ -46,6 +46,7 @@ if __name__ == "__main__":
         lastPush = db.frontEnd.find().sort("timestamp", pymongo.DESCENDING).limit(1)[0]
         lastAnalysis = db.streamResults.find().sort("insertTime", pymongo.DESCENDING).limit(1)[0]
         count = defaultdict(int)
+        ongoingEventsId = []
         
         # Check if disco analyzed more data
         if lastPush["timestamp"] != lastAnalysis["insertTime"]:
@@ -68,7 +69,7 @@ if __name__ == "__main__":
                 cursor.execute("""
                 do $$
                 begin 
-                    insert into ihr_asn(number, name, disco, tartiflette) values(%s, %s, TRUE, FALSE);
+                    insert into ihr_asn(number, name, disco, tartiflette, ashash) values(%s, %s, TRUE, FALSE, FALSE);
                   exception when unique_violation then
                     update ihr_asn set disco = TRUE where number = %s;
                 end $$;""", (asn, asNames["AS"+str(asn)], asn))
@@ -89,43 +90,56 @@ if __name__ == "__main__":
 
             # Update results on the webserver
             # # update ongoing events
-            cursor.execute("SELECT id, streamtype, streamname, starttime FROM ihr_disco_events WHERE ongoing=TRUE")
+            cursor.execute("SELECT id, mongoid FROM ihr_disco_events WHERE ongoing=TRUE")
             ongoingEvents = cursor.fetchall()
 
-            for eventidpg, streamtype, streamname, starttime in ongoingEvents:
-                events = db.streamResults.find({"streamType": streamtype, "streamName": streamname, "insertTime":{"$gte": lastPush["timestamp"]}})
-                
+            for eventidpg, eventidmg in ongoingEvents:
+                ongoingEventsId.append(eventidmg)
+                events = db.streamResults.find({"_id": objectid.ObjectId(eventidmg)})
                 events = list(events)
-                if len(events) == 1:
-                    #update website
+                if len(events)>1:
+                    logging.error("Too many on going events? %s" % events)
+
+                if len(events)>0 and events[0]["insertTime"] > lastPush["timestamp"]:
                     event = events[0]
-                    if event["duration"] < MINEVENTLENGTH:
-                        # remove event if duration < 15min
-                        cursor.execute("DELETE from ihr_disco_events WHERE streamtype=%s and streamname=%s and ongoing=TRUE", ( streamtype, streamname))
-                        cursor.execute("DELETE from ihr_disco_probes WHERE eventid=%s", ( eventidpg ))
+                    #update website
+                    if event["duration"] >= MINEVENTLENGTH or event["duration"]==-1:
+                        avgLevel = np.mean([p["state"] for p in event["probeInfo"]])
+                        ongoing = "FALSE"
+                        if event["duration"]==-1:
+                            ongoing = "TRUE"
+
+                        cursor.execute("UPDATE ihr_disco_events SET endtime=%s, avglevel=%s, nbdiscoprobes=%s, ongoing=%s \
+                            WHERE mongoid=%s ", (datetime.utcfromtimestamp(event["end"]), avgLevel, len(event["probeInfo"]), ongoing, eventidmg))
+
+                        # update probe end time here: 
+                        cursor.execute("UPDATE ihr_disco_probes SET endtime=%s WHERE event_id=%s", (datetime.utcfromtimestamp(event["end"]), eventidpg ))
+                        # add the rest of probes:
+                        for probe in event["probeInfo"]:
+                            cursor.execute("INSERT INTO ihr_disco_probes (probe_id, event_id, starttime, endtime, level, ipv4, prefixv4) \
+                                    VALUES (%s, %s, %s, %s, %s, %s, %s) ", (probe["probeID"], eventidpg, datetime.utcfromtimestamp(probe["start"]), datetime.utcfromtimestamp(probe["end"]), probe["state"], probe["address_v4"], probe["prefix_v4"] ))
 
                     else:
-                        avgLevel = np.mean([p["state"] for p in event["probeInfo"]])
-                        cursor.execute("UPDATE ihr_disco_events SET endtime=%s, avglevel=%s, nbdiscoprobes=%s, ongoing=FALSE \
-                            WHERE streamtype=%s and streamname=%s and ongoing=TRUE", (datetime.utcfromtimestamp(event["end"]), avgLevel, len(event["probeInfo"]), streamtype, streamname))
-
-                        # update probe end time here..... 
-                        cursor.execute("UPDATE ihr_disco_probes SET endtime=%s WHERE event_id=%s", (datetime.utcfromtimestamp(event["end"]), eventidpg ))
-
-                elif len(events) == 0:
-                    #event still ongoing
-                    avgLevel = np.mean([p["state"] for p in event["probeInfo"]])
-                    cursor.execute("UPDATE ihr_disco_events SET endtime=%s, avglevel=%s\
-                        WHERE streamtype=%s and streamname=%s and ongoing=TRUE", (datetime.utcfromtimestamp(lastAnalysis["insertTime"]), avgLevel, streamtype, streamname))
+                        # remove event if duration < 15min
+                        cursor.execute("DELETE from ihr_disco_events WHERE mongoid=%s", ( eventidmg, ))
+                        cursor.execute("DELETE from ihr_disco_probes WHERE event_id=%s", ( eventidpg, ))
 
                 else:
-                    logging.error("Too many on going events? %s" % events)
+                    #event still ongoing
+                    # event = events[0]
+                    # avgLevel = np.mean([p["state"] for p in event["probeInfo"]])
+                    # TODO update avglevel?
+                    cursor.execute("UPDATE ihr_disco_events SET endtime=%s \
+                        WHERE mongoid=%s", (datetime.utcfromtimestamp(lastAnalysis["insertTime"]), eventidmg))
 
             # Get latest results from mongo
             logging.info("Getting new events from mongo")
-            events = db.streamResults.find({"start": {"$gte": lastPush["timestamp"]}})
-            discoStream = defaultdict(list) 
+            events = db.streamResults.find({"insertTime": {"$gte": lastPush["timestamp"]}})
             for event in events:
+                logging.info(event)
+                if event["_id"] in ongoingEventsId:
+                    # Skip ongoing events, they are already in the db
+                    continue
 
                 ongoing = False
                 if event["duration"] == -1:
@@ -149,17 +163,15 @@ if __name__ == "__main__":
                     # compute the average burst level
                     avgLevel = np.mean([p["state"] for p in event["probeInfo"]])
                     endDate = datetime.utcfromtimestamp(event["end"])
-                cursor.execute("INSERT INTO ihr_disco_events (streamtype, streamname, starttime, endtime, avglevel, nbdiscoprobes, totalprobes, ongoing) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id", (event["streamType"], event["streamName"], startDate, endDate, avgLevel, len(event["probeInfo"]), event["numberOfProbesInUnit"], ongoing))
+                cursor.execute("INSERT INTO ihr_disco_events (mongoid, streamtype, streamname, starttime, endtime, avglevel, nbdiscoprobes, totalprobes, ongoing) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id", (str(event["_id"]), event["streamType"], event["streamName"], startDate, endDate, avgLevel, len(event["probeInfo"]), event["numberOfProbesInUnit"], ongoing))
                 # cursor.execute("INSERT INTO ihr_disco_events (streamtype, streamname, starttime, endtime) VALUES (%s, %s, %s, %s) RETURNING id", (event["streamType"], event["streamName"], startDate, endDate))
 
                 eventId = cursor.fetchone()[0]
 
                 # Add corresponding probes infos
                 for probe in event["probeInfo"]:
-                    cursor.execute("INSERT INTO ihr_disco_probes (probe_id, event_id, starttime, endtime, level) \
-                            VALUES (%s, %s, %s, %s, %s) ", (probe["probeID"], eventId, datetime.utcfromtimestamp(probe["start"]), datetime.utcfromtimestamp(probe["end"]), probe["state"] ))
-
-                discoStream[event["streamName"]].append( (event["start"], event["end"]) )
+                    cursor.execute("INSERT INTO ihr_disco_probes (probe_id, event_id, starttime, endtime, level, ipv4, prefixv4) \
+                            VALUES (%s, %s, %s, %s, %s, %s, %s) ", (probe["probeID"], eventId, datetime.utcfromtimestamp(probe["start"]), datetime.utcfromtimestamp(probe["end"]), probe["state"], probe["address_v4"], probe["prefix_v4"] ))
 
             conn.commit()
             cursor.close()
