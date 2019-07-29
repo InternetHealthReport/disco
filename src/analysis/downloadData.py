@@ -13,7 +13,7 @@ def downloadData(start, end, msmId=7000, timeWindow = timedelta(minutes=24*60) )
 
     # Get measurments results
     currDate = start
-    while currDate+timeWindow<end:
+    while currDate+timeWindow<=end:
         path = "data/%s/%s" % (currDate.year, currDate.month)
         try:
             print("%s:  measurement id %s" % (currDate, msmId) )
